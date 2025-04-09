@@ -27,7 +27,7 @@ st.title('環境設計ツール')
 st.sidebar.success('Select a page above')
 location=['TOKYO','SAPPORO','OSAKA','FUKUOKA','KAGOSHIMA']
 select_location =st.selectbox('地域を選択してください:',location)
-point_data=pd.read_csv('地点データ/5地点の緯度経度.csv',index_col=None, header=0,sep=',',engine='python')
+point_data=pd.read_csv(Rf'地点データ/5地点の緯度経度.csv',index_col=None, header=0,sep=',',engine='python')
 site=str(select_location)
 point=list(point_data[site])
 map = folium.Map(location=point,zoom_start=4.7,width=450,height=380)
