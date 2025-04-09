@@ -153,7 +153,7 @@ Month=['January',
 Load_data=Load_month.T
 Load_data.columns=Month
 def plot_temperature():
-    sns.set(style="whitegrid",font=["Times New Roman","Yu Gothic"])
+    sns.set(style="whitegrid",font=["IPAexGothic"])
     fig = plt.figure(figsize=(15,7),dpi=250,facecolor='silver')
     plt.title(f'月の最高気温・最低気温・平均気温の推移 地点:{site}')
     plt.plot(Tem_month['最高気温[℃]'],color='orange', label='最高気温[℃]',linestyle='dashed',marker="D",markersize=8,alpha=0.6)
@@ -166,7 +166,7 @@ def plot_temperature():
     plt.yticks(np.arange(-15,42+0.01,3))
     st.pyplot(plt)
 def plot_load():
-    sns.set(style="darkgrid",font=["Times New Roman","Yu Gothic"])
+    sns.set(style="darkgrid",font=["IPAexGothic"])
     fig = plt.figure(figsize=(15,7),dpi=250,facecolor='silver')
     plt.title(f'月の最高気温・最低気温・平均気温の推移 地点:{site}')
     w=0.4
