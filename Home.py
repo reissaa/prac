@@ -43,7 +43,7 @@ with col2:
 
 
 #気象データの選択
-wea=pd.read_csv(Rf"{site}/site/eplusout.csv")
+wea=pd.read_csv(Rf"地点のデータ/{site}/site/eplusout.csv")
 month=wea['Date/Time'].str[:3].astype(int)
 date=wea['Date/Time'].str[4:6].astype(int)
 time=wea['Date/Time'].str[6:10].astype(int)
