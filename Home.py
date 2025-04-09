@@ -168,7 +168,6 @@ def plot_temperature():
 def plot_load():
     sns.set(style="darkgrid",font=["Times New Roman","Yu Gothic"])
     fig = plt.figure(figsize=(15,7),dpi=250,facecolor='silver')
-    plt.title(f'月の最高気温・最低気温・平均気温の推移 地点:{site}')
     w=0.4
     plt.bar(Load_month.index,Load_month['暖房負荷'],width=-w,label='Heating energy[MJ]',color='r',ec='gray',tick_label=Month,align='edge')
     plt.bar(Load_month.index,Load_month['冷房顕熱負荷'],bottom=Load_month['冷房潜熱負荷'],width=w,label='Cooling  Sensible energy[MJ]',tick_label=Month,color='dodgerblue',ec='gray',align='edge')
