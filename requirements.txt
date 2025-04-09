@@ -9,4 +9,4 @@ seaborn==0.13.2
 streamlit==1.42.2
 streamlit_folium==0.24.0
 windrose==1.9.2
-japanize-matplotlib
+
