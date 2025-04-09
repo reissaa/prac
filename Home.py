@@ -27,13 +27,13 @@ st.title('環境設計ツール')
 st.sidebar.success('Select a page above')
 location=['TOKYO','SAPPORO','OSAKA','FUKUOKA','KAGOSHIMA']
 select_location =st.selectbox('地域を選択してください:',location)
-point_data=pd.read_csv('C:/Users/Mkour/Desktop/Environment_Design_tool/Data/地点データ/5地点の緯度経度.csv',index_col=None, header=0,sep=',',engine='python')
+point_data=pd.read_csv('地点データ/5地点の緯度経度.csv',index_col=None, header=0,sep=',',engine='python')
 site=str(select_location)
 point=list(point_data[site])
 map = folium.Map(location=point,zoom_start=4.7,width=450,height=380)
 
 col1, col2 = st.columns(2)
-img1=Image.open(Rf"C:\Users\Mkour\Desktop\Environment_Design_tool\Data\image\標準住宅モデル.png")
+img1=Image.open(Rf"image\標準住宅モデル.png")
 with col1:
     folium.Marker(point,popup=site,icon=folium.Icon(color='red')).add_to(map)
     folium_static(map)
@@ -43,7 +43,7 @@ with col2:
 
 
 #気象データの選択
-wea=pd.read_csv(f"C:/Users/Mkour/Desktop/Environment_Design_tool/Data/地点データ/{site}/site/eplusout.csv")
+wea=pd.read_csv(Rf"{site}/site/eplusout.csv")
 month=wea['Date/Time'].str[:3].astype(int)
 date=wea['Date/Time'].str[4:6].astype(int)
 time=wea['Date/Time'].str[6:10].astype(int)
@@ -55,7 +55,7 @@ datetime.columns=['month','date','time','month/date']
 Wea = pd.concat([datetime, wea], axis=1)
 
 
-load=pd.read_csv(f"C:/Users/Mkour/Desktop/Environment_Design_tool/Data/地点データ/{site}/grade4 Zone Ideal Loads Supply Enegy/eplusout.csv")
+load=pd.read_csv(Rf"{site}/grade4 Zone Ideal Loads Supply Enegy/eplusout.csv")
 Load=pd.concat([datetime, load], axis=1)
 
 A=list(Wea.columns.str.endswith('Site Outdoor Air Drybulb Temperature [C](Hourly)') )
