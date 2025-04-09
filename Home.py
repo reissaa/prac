@@ -33,7 +33,7 @@ point=list(point_data[site])
 map = folium.Map(location=point,zoom_start=4.7,width=450,height=380)
 
 col1, col2 = st.columns(2)
-img1=Image.open(Rf'image\\標準住宅モデル.png')
+img1=Image.open(Rf'image/標準住宅モデル.png')
 with col1:
     folium.Marker(point,popup=site,icon=folium.Icon(color='red')).add_to(map)
     folium_static(map)
