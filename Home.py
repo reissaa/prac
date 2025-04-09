@@ -43,7 +43,7 @@ with col2:
 
 
 #気象データの選択
-wea=pd.read_csv(Rf"地点のデータ/{site}/site/eplusout.csv")
+wea=pd.read_csv(Rf"地点データ/{site}/site/eplusout.csv")
 month=wea['Date/Time'].str[:3].astype(int)
 date=wea['Date/Time'].str[4:6].astype(int)
 time=wea['Date/Time'].str[6:10].astype(int)
@@ -55,7 +55,7 @@ datetime.columns=['month','date','time','month/date']
 Wea = pd.concat([datetime, wea], axis=1)
 
 
-load=pd.read_csv(Rf"{site}/grade4 Zone Ideal Loads Supply Enegy/eplusout.csv")
+load=pd.read_csv(Rf"地点データ/{site}/grade4 Zone Ideal Loads Supply Enegy/eplusout.csv")
 Load=pd.concat([datetime, load], axis=1)
 
 A=list(Wea.columns.str.endswith('Site Outdoor Air Drybulb Temperature [C](Hourly)') )
