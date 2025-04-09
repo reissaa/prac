@@ -156,12 +156,11 @@ Load_data.columns=Month
 def plot_temperature():
     sns.set(style="whitegrid",font=["Times New Roman","Yu Gothic"])
     fig = plt.figure(figsize=(15,7),dpi=250,facecolor='silver')
-    plt.title(f'月の最高気温・最低気温・平均気温の推移 地点:{site}')
     plt.plot(Tem_month['最高気温[℃]'],color='orange', label='最高気温[℃]',linestyle='dashed',marker="D",markersize=8,alpha=0.6)
     plt.plot(Tem_month['平均気温[℃]'],color='green', label='平均気温[℃]',linestyle='dashed',marker="D",markersize=8,alpha=0.6)
     plt.plot(Tem_month['最低気温[℃]'],color='deepskyblue', label='最低気温[℃]',linestyle='dashed',marker="D",markersize=8,alpha=0.6)
     plt.legend(fontsize=14,ncol=1)
-    plt.ylabel('温度[℃]',size=14)
+    plt.ylabel('Temperature[℃]',size=14)
     plt.xlabel('Month',size=14)
     plt.ylim([-15,42])
     plt.yticks(np.arange(-15,42+0.01,3))
@@ -171,7 +170,6 @@ def plot_load():
     fig = plt.figure(figsize=(15,7),dpi=250,facecolor='silver')
     plt.title(f'月の最高気温・最低気温・平均気温の推移 地点:{site}')
     w=0.4
-    plt.title(f"年間月積算負荷                site:{site}", fontsize = 20) # (3)タイトル
     plt.bar(Load_month.index,Load_month['暖房負荷'],width=-w,label='Heating energy[MJ]',color='r',ec='gray',tick_label=Month,align='edge')
     plt.bar(Load_month.index,Load_month['冷房顕熱負荷'],bottom=Load_month['冷房潜熱負荷'],width=w,label='Cooling  Sensible energy[MJ]',tick_label=Month,color='dodgerblue',ec='gray',align='edge')
     plt.bar(Load_month.index,Load_month['冷房潜熱負荷'],width=w,label='Cooling  Latent energy[MJ]',tick_label=Month,color='lightblue',ec='gray',align='edge')
