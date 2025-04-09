@@ -13,6 +13,7 @@ from streamlit_folium import folium_static
 import plotly.express as px
 import altair as alt
 from PIL import Image
+import japanize_matplotlib
 
 st.set_page_config(
     page_title='Multipage App',
