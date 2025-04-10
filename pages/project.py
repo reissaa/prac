@@ -40,8 +40,8 @@ weph_data=wepc.T
 wept_data=wepc.T
 
 st.title(f'wepc 省エネ基準 地点:{site}')
-st.dataframe(wepc_data, height=150)
+st.dataframe(wepc_data, height=200)
 st.title(f'weph 省エネ基準地点:{site}')
-st.dataframe(weph_data, height=150)
+st.dataframe(weph_data, height=200)
 st.title(f'wept 省エネ基準 地点:{site}')
-st.dataframe(wept_data, height=150)
+st.dataframe(wept_data, height=200)
