@@ -30,6 +30,7 @@ with col3:
    st.image(img3)
 
 wepc=pd.read_csv(Rf"地点データ/{site}/wep_base/MWEPc({site}・省エネ).csv")
+
 weph=pd.read_csv(Rf"地点データ/{site}/wep_base/MWEPh({site}・省エネ).csv")
 wept=pd.read_csv(Rf"地点データ/{site}/wep_base/MWEPt({site}・省エネ).csv")
 
@@ -40,7 +41,18 @@ weph_data=weph.T
 wept_data=wept.T
 
 st.title(f'wepc 省エネ基準 地点:{site}')
+fig = plt.figure()
+ax1 = fig.add_subplot(2, 2, 1)
+ax2 = fig.add_subplot(2, 2, 2)
+ax3 = fig.add_subplot(2, 2, 3)
+ax4 = fig.add_subplot(2, 2, 4)
+ax1.barplot(wepc.index, wepc['S'] )
+ax2.barplot(wepc.index,wepc['N'])
+ax3.barplot(wepc.index,wepc['E'])
+ax4.barplot(wepc.index,wepc['W'])
+st.pyplot(fig)
 st.dataframe(wepc_data, height=200)
+
 st.title(f'weph 省エネ基準地点:{site}')
 st.dataframe(weph_data, height=200)
 st.title(f'wept 省エネ基準 地点:{site}')
