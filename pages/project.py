@@ -1,6 +1,7 @@
 import streamlit as st
 from PIL import Image
 import pandas as pd
+import matplotlib.pyplot as plt
 st.set_page_config(
     page_title='Multipage App',
     page_icon='🗾',
