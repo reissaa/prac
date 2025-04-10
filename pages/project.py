@@ -43,12 +43,13 @@ Month=['January',
 wepc=pd.read_csv(Rf"地点データ/{site}/wep_base/MWEPc({site}・省エネ).csv")
 weph=pd.read_csv(Rf"地点データ/{site}/wep_base/MWEPh({site}・省エネ).csv")
 wept=pd.read_csv(Rf"地点データ/{site}/wep_base/MWEPt({site}・省エネ).csv")
+wepc_data.index=Month
 wepc_data=wepc.T
-wepc_data.columns=Month
+weph_data.index=Month
 weph_data=wepc.T
-weph_data.columns=Month
+wept_data.index=Month
 wept_data=wepc.T
-wept_data.columns=Month
+
 st.title(f'wepc 省エネ基準 地点:{site}')
 st.dataframe(wepc_data, height=150)
 st.title(f'weph 省エネ基準地点:{site}')
