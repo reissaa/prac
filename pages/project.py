@@ -28,59 +28,15 @@ img3=Image.open(Rf"wind/{site}_windrose.png")
 with col3:
    st.header("風配図")
    st.image(img3)
-Month=['January',
- 'February',
- 'March',
- 'April',
- 'May',
- 'June',
- 'July',
- 'August',
- 'September',
- 'October',
- 'November',
- 'December']
+
 wepc=pd.read_csv(Rf"地点データ/{site}/wep_base/MWEPc({site}・省エネ).csv")
 weph=pd.read_csv(Rf"地点データ/{site}/wep_base/MWEPh({site}・省エネ).csv")
 wept=pd.read_csv(Rf"地点データ/{site}/wep_base/MWEPt({site}・省エネ).csv")
-wepc_data.index=['January',
- 'February',
- 'March',
- 'April',
- 'May',
- 'June',
- 'July',
- 'August',
- 'September',
- 'October',
- 'November',
- 'December']
+
 wepc_data=wepc.T
-weph_data.index=['January',
- 'February',
- 'March',
- 'April',
- 'May',
- 'June',
- 'July',
- 'August',
- 'September',
- 'October',
- 'November',
- 'December']
+
 weph_data=wepc.T
-wept_data.index=['January',
- 'February',
- 'March',
- 'April',
- 'May',
- 'June',
- 'July',
- 'August',
- 'September',
- 'October',
- 'November',
- 'December']
+
 wept_data=wepc.T
 
 st.title(f'wepc 省エネ基準 地点:{site}')
