@@ -8,9 +8,11 @@ st.set_page_config(
 
 st.title('🏚️環境設計ツール')
 st.sidebar.success('オプション')
-location=['Tokyo','Sapporo','Osaka','Fukuoka','Kagoshima']
+st.title('環境設計ツール')
+st.sidebar.success('Select a page above')
+location=['TOKYO','SAPPORO','OSAKA','FUKUOKA','KAGOSHIMA']
 select_location =st.selectbox('地域を選択してください:',location)
-site=select_location
+site=str(select_location)
 col1, col2, col3 = st.columns(3)
 img1=Image.open(Rf"Tem/{site}_tem.png")
 
