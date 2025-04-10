@@ -41,7 +41,7 @@ weph_data=weph.T
 wept_data=wept.T
 
 st.title(f'wepc 省エネ基準 地点:{site}')
-fig = plt.figure()
+fig = plt.figure(figsize=(15,7),dpi=250,facecolor='silver')
 ax1 = fig.add_subplot(2, 2, 1)
 ax2 = fig.add_subplot(2, 2, 2)
 ax3 = fig.add_subplot(2, 2, 3)
