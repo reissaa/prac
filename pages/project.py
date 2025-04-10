@@ -35,9 +35,9 @@ wept=pd.read_csv(Rf"地点データ/{site}/wep_base/MWEPt({site}・省エネ).cs
 
 wepc_data=wepc.T
 
-weph_data=wepc.T
+weph_data=weph.T
 
-wept_data=wepc.T
+wept_data=wept.T
 
 st.title(f'wepc 省エネ基準 地点:{site}')
 st.dataframe(wepc_data, height=200)
