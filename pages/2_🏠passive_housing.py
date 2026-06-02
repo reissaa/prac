@@ -20,36 +20,326 @@ st.set_page_config(
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+ZONE_COLORS = {
+    '1地域': '#1a237e',
+    '2地域': '#1565c0',
+    '3地域': '#0288d1',
+    '4地域': '#2e7d32',
+    '5地域': '#f57f17',
+    '6地域': '#c0392b',
+    '7地域': '#7b241c',
+    '8地域': '#6c3483',
+}
+
+ZONE_DESC = {
+    '1地域': '最寒冷地 — 暖房中心設計・超高断熱',
+    '2地域': '寒冷地 — 高断熱・南面日射取得重視',
+    '3地域': '準寒冷地 — 断熱と日射遮蔽のバランス',
+    '4地域': '温暖地A — 暖冷房均衡・方位設計が重要',
+    '5地域': '温暖地B — 冷房負荷が増大傾向',
+    '6地域': '温暖地C — 日射遮蔽・通風が重要',
+    '7地域': '温暖地D — 夏の日射制御・通風が最重要',
+    '8地域': '暑熱地 — 冷房中心・強力な遮熱が必須',
+}
+
+_Z = ZONE_COLORS  # shorthand
+
 CITIES = {
-    'TOKYO': {
-        'name': '東京', 'name_en': 'Tokyo',
-        'lat': 35.6892, 'lon': 139.6917,
-        'prefecture': '東京都', 'region': '関東',
-        'climate_zone': '6地域', 'color': '#e74c3c',
+    # ─── 1地域 ───
+    'ASAHIKAWA': {
+        'name': '旭川', 'name_en': 'Asahikawa',
+        'lat': 43.7706, 'lon': 142.3653,
+        'prefecture': '北海道', 'region': '北海道',
+        'climate_zone': '1地域', 'color': _Z['1地域'],
     },
+    # ─── 2地域 ───
     'SAPPORO': {
         'name': '札幌', 'name_en': 'Sapporo',
         'lat': 43.0642, 'lon': 141.3469,
         'prefecture': '北海道', 'region': '北海道',
-        'climate_zone': '1地域', 'color': '#3498db',
+        'climate_zone': '2地域', 'color': _Z['2地域'],
+    },
+    'AOMORI': {
+        'name': '青森', 'name_en': 'Aomori',
+        'lat': 40.8244, 'lon': 140.7400,
+        'prefecture': '青森県', 'region': '東北',
+        'climate_zone': '2地域', 'color': _Z['2地域'],
+    },
+    'AKITA': {
+        'name': '秋田', 'name_en': 'Akita',
+        'lat': 39.7181, 'lon': 140.1024,
+        'prefecture': '秋田県', 'region': '東北',
+        'climate_zone': '2地域', 'color': _Z['2地域'],
+    },
+    # ─── 3地域 ───
+    'MORIOKA': {
+        'name': '盛岡', 'name_en': 'Morioka',
+        'lat': 39.7036, 'lon': 141.1527,
+        'prefecture': '岩手県', 'region': '東北',
+        'climate_zone': '3地域', 'color': _Z['3地域'],
+    },
+    'SENDAI': {
+        'name': '仙台', 'name_en': 'Sendai',
+        'lat': 38.2682, 'lon': 140.8694,
+        'prefecture': '宮城県', 'region': '東北',
+        'climate_zone': '3地域', 'color': _Z['3地域'],
+    },
+    'YAMAGATA': {
+        'name': '山形', 'name_en': 'Yamagata',
+        'lat': 38.2404, 'lon': 140.3633,
+        'prefecture': '山形県', 'region': '東北',
+        'climate_zone': '3地域', 'color': _Z['3地域'],
+    },
+    'NAGANO': {
+        'name': '長野', 'name_en': 'Nagano',
+        'lat': 36.6513, 'lon': 138.1811,
+        'prefecture': '長野県', 'region': '中部',
+        'climate_zone': '3地域', 'color': _Z['3地域'],
+    },
+    # ─── 4地域 ───
+    'FUKUSHIMA': {
+        'name': '福島', 'name_en': 'Fukushima',
+        'lat': 37.7500, 'lon': 140.4678,
+        'prefecture': '福島県', 'region': '東北',
+        'climate_zone': '4地域', 'color': _Z['4地域'],
+    },
+    'MAEBASHI': {
+        'name': '前橋', 'name_en': 'Maebashi',
+        'lat': 36.3911, 'lon': 139.0607,
+        'prefecture': '群馬県', 'region': '関東',
+        'climate_zone': '4地域', 'color': _Z['4地域'],
+    },
+    'NIIGATA': {
+        'name': '新潟', 'name_en': 'Niigata',
+        'lat': 37.9161, 'lon': 139.0364,
+        'prefecture': '新潟県', 'region': '中部',
+        'climate_zone': '4地域', 'color': _Z['4地域'],
+    },
+    'TOYAMA': {
+        'name': '富山', 'name_en': 'Toyama',
+        'lat': 36.6953, 'lon': 137.2113,
+        'prefecture': '富山県', 'region': '中部',
+        'climate_zone': '4地域', 'color': _Z['4地域'],
+    },
+    'FUKUI': {
+        'name': '福井', 'name_en': 'Fukui',
+        'lat': 36.0652, 'lon': 136.2216,
+        'prefecture': '福井県', 'region': '中部',
+        'climate_zone': '4地域', 'color': _Z['4地域'],
+    },
+    'KOFU': {
+        'name': '甲府', 'name_en': 'Kofu',
+        'lat': 35.6642, 'lon': 138.5684,
+        'prefecture': '山梨県', 'region': '中部',
+        'climate_zone': '4地域', 'color': _Z['4地域'],
+    },
+    # ─── 5地域 ───
+    'MITO': {
+        'name': '水戸', 'name_en': 'Mito',
+        'lat': 36.3418, 'lon': 140.4468,
+        'prefecture': '茨城県', 'region': '関東',
+        'climate_zone': '5地域', 'color': _Z['5地域'],
+    },
+    'UTSUNOMIYA': {
+        'name': '宇都宮', 'name_en': 'Utsunomiya',
+        'lat': 36.5545, 'lon': 139.8832,
+        'prefecture': '栃木県', 'region': '関東',
+        'climate_zone': '5地域', 'color': _Z['5地域'],
+    },
+    'SAITAMA': {
+        'name': 'さいたま', 'name_en': 'Saitama',
+        'lat': 35.8617, 'lon': 139.6453,
+        'prefecture': '埼玉県', 'region': '関東',
+        'climate_zone': '5地域', 'color': _Z['5地域'],
+    },
+    'KANAZAWA': {
+        'name': '金沢', 'name_en': 'Kanazawa',
+        'lat': 36.5944, 'lon': 136.6256,
+        'prefecture': '石川県', 'region': '中部',
+        'climate_zone': '5地域', 'color': _Z['5地域'],
+    },
+    'GIFU': {
+        'name': '岐阜', 'name_en': 'Gifu',
+        'lat': 35.3912, 'lon': 136.7223,
+        'prefecture': '岐阜県', 'region': '中部',
+        'climate_zone': '5地域', 'color': _Z['5地域'],
+    },
+    'OTSU': {
+        'name': '大津', 'name_en': 'Otsu',
+        'lat': 35.0045, 'lon': 135.8686,
+        'prefecture': '滋賀県', 'region': '近畿',
+        'climate_zone': '5地域', 'color': _Z['5地域'],
+    },
+    'NARA': {
+        'name': '奈良', 'name_en': 'Nara',
+        'lat': 34.6851, 'lon': 135.8325,
+        'prefecture': '奈良県', 'region': '近畿',
+        'climate_zone': '5地域', 'color': _Z['5地域'],
+    },
+    'TOTTORI': {
+        'name': '鳥取', 'name_en': 'Tottori',
+        'lat': 35.5011, 'lon': 134.2351,
+        'prefecture': '鳥取県', 'region': '中国',
+        'climate_zone': '5地域', 'color': _Z['5地域'],
+    },
+    'MATSUE': {
+        'name': '松江', 'name_en': 'Matsue',
+        'lat': 35.4723, 'lon': 133.0505,
+        'prefecture': '島根県', 'region': '中国',
+        'climate_zone': '5地域', 'color': _Z['5地域'],
+    },
+    # ─── 6地域 ───
+    'CHIBA': {
+        'name': '千葉', 'name_en': 'Chiba',
+        'lat': 35.6073, 'lon': 140.1063,
+        'prefecture': '千葉県', 'region': '関東',
+        'climate_zone': '6地域', 'color': _Z['6地域'],
+    },
+    'TOKYO': {
+        'name': '東京', 'name_en': 'Tokyo',
+        'lat': 35.6892, 'lon': 139.6917,
+        'prefecture': '東京都', 'region': '関東',
+        'climate_zone': '6地域', 'color': _Z['6地域'],
+    },
+    'YOKOHAMA': {
+        'name': '横浜', 'name_en': 'Yokohama',
+        'lat': 35.4478, 'lon': 139.6425,
+        'prefecture': '神奈川県', 'region': '関東',
+        'climate_zone': '6地域', 'color': _Z['6地域'],
+    },
+    'SHIZUOKA': {
+        'name': '静岡', 'name_en': 'Shizuoka',
+        'lat': 34.9769, 'lon': 138.3831,
+        'prefecture': '静岡県', 'region': '中部',
+        'climate_zone': '6地域', 'color': _Z['6地域'],
+    },
+    'NAGOYA': {
+        'name': '名古屋', 'name_en': 'Nagoya',
+        'lat': 35.1802, 'lon': 136.9066,
+        'prefecture': '愛知県', 'region': '中部',
+        'climate_zone': '6地域', 'color': _Z['6地域'],
+    },
+    'TSU': {
+        'name': '津', 'name_en': 'Tsu',
+        'lat': 34.7303, 'lon': 136.5086,
+        'prefecture': '三重県', 'region': '近畿',
+        'climate_zone': '6地域', 'color': _Z['6地域'],
+    },
+    'KYOTO': {
+        'name': '京都', 'name_en': 'Kyoto',
+        'lat': 35.0211, 'lon': 135.7556,
+        'prefecture': '京都府', 'region': '近畿',
+        'climate_zone': '6地域', 'color': _Z['6地域'],
     },
     'OSAKA': {
         'name': '大阪', 'name_en': 'Osaka',
         'lat': 34.6864, 'lon': 135.5200,
         'prefecture': '大阪府', 'region': '近畿',
-        'climate_zone': '6地域', 'color': '#27ae60',
+        'climate_zone': '6地域', 'color': _Z['6地域'],
+    },
+    'KOBE': {
+        'name': '神戸', 'name_en': 'Kobe',
+        'lat': 34.6913, 'lon': 135.1830,
+        'prefecture': '兵庫県', 'region': '近畿',
+        'climate_zone': '6地域', 'color': _Z['6地域'],
+    },
+    'WAKAYAMA': {
+        'name': '和歌山', 'name_en': 'Wakayama',
+        'lat': 34.2261, 'lon': 135.1675,
+        'prefecture': '和歌山県', 'region': '近畿',
+        'climate_zone': '6地域', 'color': _Z['6地域'],
+    },
+    'OKAYAMA': {
+        'name': '岡山', 'name_en': 'Okayama',
+        'lat': 34.6618, 'lon': 133.9350,
+        'prefecture': '岡山県', 'region': '中国',
+        'climate_zone': '6地域', 'color': _Z['6地域'],
+    },
+    'HIROSHIMA': {
+        'name': '広島', 'name_en': 'Hiroshima',
+        'lat': 34.3853, 'lon': 132.4553,
+        'prefecture': '広島県', 'region': '中国',
+        'climate_zone': '6地域', 'color': _Z['6地域'],
+    },
+    'YAMAGUCHI': {
+        'name': '山口', 'name_en': 'Yamaguchi',
+        'lat': 34.1861, 'lon': 131.4706,
+        'prefecture': '山口県', 'region': '中国',
+        'climate_zone': '6地域', 'color': _Z['6地域'],
+    },
+    'TOKUSHIMA': {
+        'name': '徳島', 'name_en': 'Tokushima',
+        'lat': 34.0657, 'lon': 134.5593,
+        'prefecture': '徳島県', 'region': '四国',
+        'climate_zone': '6地域', 'color': _Z['6地域'],
+    },
+    'TAKAMATSU': {
+        'name': '高松', 'name_en': 'Takamatsu',
+        'lat': 34.3401, 'lon': 134.0434,
+        'prefecture': '香川県', 'region': '四国',
+        'climate_zone': '6地域', 'color': _Z['6地域'],
+    },
+    'MATSUYAMA': {
+        'name': '松山', 'name_en': 'Matsuyama',
+        'lat': 33.8416, 'lon': 132.7658,
+        'prefecture': '愛媛県', 'region': '四国',
+        'climate_zone': '6地域', 'color': _Z['6地域'],
+    },
+    'OITA': {
+        'name': '大分', 'name_en': 'Oita',
+        'lat': 33.2382, 'lon': 131.6126,
+        'prefecture': '大分県', 'region': '九州',
+        'climate_zone': '6地域', 'color': _Z['6地域'],
+    },
+    # ─── 7地域 ───
+    'KOCHI': {
+        'name': '高知', 'name_en': 'Kochi',
+        'lat': 33.5597, 'lon': 133.5311,
+        'prefecture': '高知県', 'region': '四国',
+        'climate_zone': '7地域', 'color': _Z['7地域'],
     },
     'FUKUOKA': {
         'name': '福岡', 'name_en': 'Fukuoka',
         'lat': 33.6064, 'lon': 130.4181,
         'prefecture': '福岡県', 'region': '九州',
-        'climate_zone': '7地域', 'color': '#f39c12',
+        'climate_zone': '7地域', 'color': _Z['7地域'],
+    },
+    'SAGA': {
+        'name': '佐賀', 'name_en': 'Saga',
+        'lat': 33.2494, 'lon': 130.2990,
+        'prefecture': '佐賀県', 'region': '九州',
+        'climate_zone': '7地域', 'color': _Z['7地域'],
+    },
+    'NAGASAKI': {
+        'name': '長崎', 'name_en': 'Nagasaki',
+        'lat': 32.7503, 'lon': 129.8777,
+        'prefecture': '長崎県', 'region': '九州',
+        'climate_zone': '7地域', 'color': _Z['7地域'],
+    },
+    'KUMAMOTO': {
+        'name': '熊本', 'name_en': 'Kumamoto',
+        'lat': 32.7898, 'lon': 130.7417,
+        'prefecture': '熊本県', 'region': '九州',
+        'climate_zone': '7地域', 'color': _Z['7地域'],
+    },
+    'MIYAZAKI': {
+        'name': '宮崎', 'name_en': 'Miyazaki',
+        'lat': 31.9111, 'lon': 131.4239,
+        'prefecture': '宮崎県', 'region': '九州',
+        'climate_zone': '7地域', 'color': _Z['7地域'],
     },
     'KAGOSHIMA': {
         'name': '鹿児島', 'name_en': 'Kagoshima',
         'lat': 31.5603, 'lon': 130.5603,
-        'prefecture': '鹿児島県', 'region': '九州南部',
-        'climate_zone': '7地域', 'color': '#9b59b6',
+        'prefecture': '鹿児島県', 'region': '九州',
+        'climate_zone': '7地域', 'color': _Z['7地域'],
+    },
+    # ─── 8地域 ───
+    'NAHA': {
+        'name': '那覇', 'name_en': 'Naha',
+        'lat': 26.2124, 'lon': 127.6809,
+        'prefecture': '沖縄県', 'region': '沖縄',
+        'climate_zone': '8地域', 'color': _Z['8地域'],
     },
 }
 
@@ -65,7 +355,17 @@ DIR_SYMBOLS = {'S': '↓', 'E': '→', 'N': '↑', 'W': '←'}
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 @st.cache_data
+def has_data(city_code: str) -> bool:
+    """シミュレーションデータが揃っているか確認する"""
+    wep = os.path.join(BASE_DIR, '地点データ', city_code, 'wep_base',
+                       f'MWEPt({city_code}・省エネ).csv')
+    epw = os.path.join(BASE_DIR, '地点データ', city_code, 'site', 'eplusout.csv')
+    return os.path.isfile(wep) and os.path.isfile(epw)
+
+
+@st.cache_data
 def load_climate_data(city_code):
+    """EPW由来の時間別気象データを読み込む"""
     filepath = os.path.join(BASE_DIR, '地点データ', city_code, 'site', 'eplusout.csv')
     col_names = [
         'datetime', 'temp_db', 'temp_dp', 'temp_wb', 'humidity_ratio', 'rh',
@@ -89,6 +389,7 @@ def load_climate_data(city_code):
 
 @st.cache_data
 def load_mwep_data(city_code):
+    """月別窓面エネルギー性能（MWEP）データを読み込む"""
     base = os.path.join(BASE_DIR, '地点データ', city_code, 'wep_base')
     mwept = pd.read_csv(f"{base}/MWEPt({city_code}・省エネ).csv").iloc[:12]
     mweph = pd.read_csv(f"{base}/MWEPh({city_code}・省エネ).csv").iloc[:12]
@@ -100,6 +401,7 @@ def load_mwep_data(city_code):
 
 @st.cache_data
 def load_energy_data(city_code):
+    """理想空調負荷（Ideal Loads）データを読み込む"""
     filepath = os.path.join(
         BASE_DIR, '地点データ', city_code,
         'grade4 Zone Ideal Loads Supply Enegy', 'eplusout.csv',
@@ -119,6 +421,7 @@ def load_energy_data(city_code):
     dt_col = cols[0]
     df_raw['month'] = df_raw[dt_col].str.strip().str[0:2].astype(int)
 
+    # 室別年間合計
     zone_names_jp = {
         'LIVINGDINING': 'LDK', 'BEDROOM': '寝室', 'KIDSROOM1': '子供部屋1',
         'KIDSROOM2': '子供部屋2', 'KITCHEN': 'キッチン', 'BATHROOM': '浴室',
@@ -148,13 +451,15 @@ def load_energy_data(city_code):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 def create_satellite_map(selected_city):
+    """Esri衛星画像を用いたGoogle Earth風マップを生成"""
     m = folium.Map(
-        location=[37.5, 136.5],
+        location=[37.0, 136.5],
         zoom_start=5,
         tiles=None,
         prefer_canvas=True,
     )
 
+    # 衛星画像タイル（Esri WorldImagery - APIキー不要）
     folium.TileLayer(
         tiles=(
             'https://server.arcgisonline.com/ArcGIS/rest/services/'
@@ -166,6 +471,7 @@ def create_satellite_map(selected_city):
         control=True,
     ).add_to(m)
 
+    # 地名ラベルオーバーレイ
     folium.TileLayer(
         tiles=(
             'https://server.arcgisonline.com/ArcGIS/rest/services/'
@@ -179,41 +485,53 @@ def create_satellite_map(selected_city):
 
     for code, city in CITIES.items():
         selected = code == selected_city
-        size = 28 if selected else 20
-        border = '3px solid white' if selected else '2px solid rgba(255,255,255,0.8)'
-        shadow = '0 0 12px rgba(255,255,255,0.9)' if selected else '0 2px 6px rgba(0,0,0,0.5)'
+        avail = has_data(code)
 
-        icon_html = f'''
-            <div style="
-                background: {city['color']};
-                border: {border};
-                border-radius: 50%;
-                width: {size}px; height: {size}px;
-                box-shadow: {shadow};
-                cursor: pointer;
-            "></div>
-        '''
+        if selected:
+            size = 28
+            bg = city['color']
+            border = '3px solid white'
+            shadow = '0 0 12px rgba(255,255,255,0.9)'
+            opacity = '1'
+            cursor = 'pointer'
+        elif avail:
+            size = 20
+            bg = city['color']
+            border = '2px solid rgba(255,255,255,0.8)'
+            shadow = '0 2px 6px rgba(0,0,0,0.5)'
+            opacity = '0.9'
+            cursor = 'pointer'
+        else:
+            size = 13
+            bg = '#888888'
+            border = '1.5px solid rgba(200,200,200,0.6)'
+            shadow = '0 1px 3px rgba(0,0,0,0.3)'
+            opacity = '0.45'
+            cursor = 'default'
 
-        label_html = f'''
-            <div style="
-                color: white; font-weight: bold; font-size: 13px;
-                text-shadow: 1px 1px 3px black, -1px -1px 3px black,
-                             1px -1px 3px black, -1px 1px 3px black;
-                white-space: nowrap;
-                {'background: rgba(0,0,0,0.45); padding: 2px 5px; border-radius: 4px;' if selected else ''}
-            ">{city['name']}</div>
-        '''
+        icon_html = (
+            f'<div style="background:{bg};border:{border};border-radius:50%;'
+            f'width:{size}px;height:{size}px;box-shadow:{shadow};'
+            f'cursor:{cursor};opacity:{opacity};"></div>'
+        )
+
+        tooltip_text = (
+            f"📍 {city['name']} ({city['climate_zone']}) — クリックして選択"
+            if avail or selected
+            else f"🔒 {city['name']} — データ準備中"
+        )
 
         popup_html = (
-            f"<b>{city['name']}</b> ({code})<br>"
-            f"{city['prefecture']}<br>"
-            f"省エネ地域区分: {city['climate_zone']}<br>"
-            f"緯度: {city['lat']}°N / 経度: {city['lon']}°E"
+            f"<b>{city['name']}</b><br>"
+            f"{city['prefecture']} / {city['region']}<br>"
+            f"省エネ地域区分: <b>{city['climate_zone']}</b><br>"
+            f"緯度: {city['lat']}°N / 経度: {city['lon']}°E<br>"
+            + ('✅ データ収録済み' if avail else '🔒 データ準備中')
         )
 
         folium.Marker(
             location=[city['lat'], city['lon']],
-            tooltip=f"📍 {city['name']} — クリックして選択",
+            tooltip=tooltip_text,
             popup=folium.Popup(popup_html, max_width=220),
             icon=folium.DivIcon(
                 html=icon_html,
@@ -222,20 +540,30 @@ def create_satellite_map(selected_city):
             ),
         ).add_to(m)
 
-        folium.Marker(
-            location=[city['lat'] + 0.35, city['lon']],
-            icon=folium.DivIcon(
-                html=label_html,
-                icon_size=(80, 24),
-                icon_anchor=(40, 12),
-            ),
-        ).add_to(m)
+        # 都市名ラベル（収録済みと選択中のみ）
+        if avail or selected:
+            label_bg = 'background: rgba(0,0,0,0.45); padding: 2px 5px; border-radius: 4px;' if selected else ''
+            label_html = (
+                f'<div style="color:white;font-weight:bold;font-size:12px;'
+                f'text-shadow:1px 1px 3px black,-1px -1px 3px black,'
+                f'1px -1px 3px black,-1px 1px 3px black;white-space:nowrap;{label_bg}">'
+                f'{city["name"]}</div>'
+            )
+            folium.Marker(
+                location=[city['lat'] + 0.38, city['lon']],
+                icon=folium.DivIcon(
+                    html=label_html,
+                    icon_size=(80, 24),
+                    icon_anchor=(40, 12),
+                ),
+            ).add_to(m)
 
     folium.LayerControl().add_to(m)
     return m
 
 
 def find_nearest_city(lat, lon):
+    """クリック位置に最も近い都市コードを返す"""
     min_dist = float('inf')
     nearest = 'TOKYO'
     for code, city in CITIES.items():
@@ -251,6 +579,7 @@ def find_nearest_city(lat, lon):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 def chart_temperature(df):
+    """月別気温プロファイル（最低・平均・最高）+ 相対湿度"""
     monthly = df.groupby('month').agg(
         temp_avg=('temp_db', 'mean'),
         temp_min=('temp_db', 'min'),
@@ -315,6 +644,7 @@ def chart_temperature(df):
 
 
 def chart_solar_wind(df):
+    """日射量 + 風況"""
     monthly = df.groupby('month').agg(
         ghi_total=('ghi', 'sum'),
         diffuse_avg=('solar_diffuse', 'mean'),
@@ -360,6 +690,7 @@ def chart_solar_wind(df):
 
 
 def chart_wind_rose(df):
+    """プロット対話式風配図"""
     df_wind = df[df['wind_speed'] > 0.3].copy()
 
     dirs_jp = [
@@ -410,6 +741,7 @@ def chart_wind_rose(df):
 
 
 def chart_heatmap_temperature(df):
+    """時刻 × 月の気温ヒートマップ"""
     pivot = df.pivot_table(values='temp_db', index='hour', columns='month', aggfunc='mean')
     pivot.columns = MONTHS_JP
 
@@ -438,6 +770,7 @@ def chart_heatmap_temperature(df):
 
 
 def chart_mwep_heating(mweph):
+    """月別・方位別 パッシブ太陽熱暖房効果（MWEPh）"""
     fig = go.Figure()
     for d, name in DIRECTIONS.items():
         fig.add_trace(go.Bar(
@@ -482,6 +815,7 @@ def chart_mwep_heating(mweph):
 
 
 def chart_mwep_cooling(mwepc):
+    """月別・方位別 日射による冷房負荷増加（MWEPc）"""
     fig = go.Figure()
     for d, name in DIRECTIONS.items():
         fig.add_trace(go.Bar(
@@ -526,6 +860,7 @@ def chart_mwep_cooling(mwepc):
 
 
 def chart_mwep_net(mwept):
+    """月別・方位別 正味窓面熱的影響（MWEPt）"""
     fig = go.Figure()
     for d, name in DIRECTIONS.items():
         vals = mwept[d].values
@@ -563,11 +898,13 @@ def chart_mwep_net(mwept):
 
 
 def chart_annual_radar(mweph, mwepc):
+    """年間パッシブ効果のレーダーチャート（方位別）"""
     dirs = list(DIRECTIONS.keys())
     dir_names = [f'{DIRECTIONS[d]}面 ({d})' for d in dirs]
 
     annual_heat = [abs(mweph[d].sum()) for d in dirs]
     annual_cool = [mwepc[d].sum() for d in dirs]
+    annual_net = [abs(mweph[d].sum()) - mwepc[d].sum() for d in dirs]
 
     fig = go.Figure()
 
@@ -605,6 +942,7 @@ def chart_annual_radar(mweph, mwepc):
 
 
 def chart_passive_monthly_balance(mweph, mwepc):
+    """月別パッシブ収支（全方位合計）"""
     monthly_heat = [abs(mweph['S'].iloc[i]) + abs(mweph['E'].iloc[i]) +
                     abs(mweph['N'].iloc[i]) + abs(mweph['W'].iloc[i])
                     for i in range(12)]
@@ -653,6 +991,7 @@ def chart_passive_monthly_balance(mweph, mwepc):
 
 
 def chart_energy_demand(df_energy, zone_annual, city_name):
+    """月別暖冷房エネルギー需要 + 室別割合"""
     monthly = df_energy.groupby('month').agg(
         heating=('heating_kWh', 'sum'),
         cooling=('cooling_kWh', 'sum'),
@@ -706,6 +1045,7 @@ def chart_energy_demand(df_energy, zone_annual, city_name):
 
 
 def make_recommendation_cards(mweph, mwepc, monthly_temp, city_name=None):
+    """設計推奨事項を生成する"""
     ann_heat = {d: abs(mweph[d].sum()) for d in 'SENW'}
     ann_cool = {d: mwepc[d].sum() for d in 'SENW'}
     net = {d: ann_heat[d] - ann_cool[d] for d in 'SENW'}
@@ -724,7 +1064,9 @@ def make_recommendation_cards(mweph, mwepc, monthly_temp, city_name=None):
 
     recs = []
 
-    south_msg = '✅ 南面窓の拡大を推奨。冬の日射取得が期待できます。' if net['S'] > 0 else '⚠️ 冷房増加が大きいため、日射遮蔽と開口部面積のバランスが重要です。'
+    south_msg = ('✅ 南面窓の拡大を推奨。冬の日射取得が期待できます。'
+                 if net['S'] > 0
+                 else '⚠️ 冷房増加が大きいため、日射遮蔽と開口部面積のバランスが重要です。')
     recs.append({
         'icon': '🪟',
         'title': '南面窓の最適化',
@@ -761,7 +1103,9 @@ def make_recommendation_cards(mweph, mwepc, monthly_temp, city_name=None):
         'color': '#27ae60',
     })
 
-    shade_msg = '⚠️ 夏の南面日射遮蔽（庇・ルーバー）が非常に重要です。' if summer_cool_S > 200 else '夏の日射遮蔽は標準的な措置で対応できます。'
+    shade_msg = ('⚠️ 夏の南面日射遮蔽（庇・ルーバー）が非常に重要です。'
+                 if summer_cool_S > 200
+                 else '夏の日射遮蔽は標準的な措置で対応できます。')
     recs.append({
         'icon': '🌿',
         'title': '日射遮蔽の重要方位',
@@ -805,6 +1149,11 @@ def main():
         border-radius: 20px; color: white; font-weight: bold;
         font-size: 14px; margin-right: 8px;
     }
+    .zone-badge {
+        display: inline-block; padding: 2px 8px;
+        border-radius: 12px; color: white; font-weight: bold;
+        font-size: 12px; margin-right: 6px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -816,42 +1165,90 @@ def main():
 
     if 'selected_city' not in st.session_state:
         st.session_state.selected_city = 'TOKYO'
+    if 'zone_filter' not in st.session_state:
+        st.session_state.zone_filter = '全地域'
 
     st.markdown('---')
     st.subheader('📍 地点選択 — 衛星画像マップ（Google Earth風）')
-    st.caption('🖱️ 地点マーカーをクリックして地点を選択してください')
+    st.caption('🖱️ マップのマーカーをクリック、または左パネルのボタンで地点を選択してください')
 
-    col_map, col_sidebar = st.columns([3, 1])
+    col_sidebar, col_map = st.columns([1, 3])
 
     with col_sidebar:
-        st.markdown('**地点一覧**')
-        for code, city in CITIES.items():
-            selected = code == st.session_state.selected_city
-            is_sel = '✔ ' if selected else ''
-            if st.button(
-                f"{is_sel}{city['name']} ({city['climate_zone']})",
-                key=f'btn_{code}',
-                type='primary' if selected else 'secondary',
-                use_container_width=True,
-            ):
-                st.session_state.selected_city = code
-                st.rerun()
+        st.markdown('#### 省エネ地域区分')
+
+        zone_options = ['全地域'] + list(ZONE_COLORS.keys())
+        sel_zone = st.selectbox(
+            '地域区分でフィルタ',
+            zone_options,
+            index=zone_options.index(st.session_state.zone_filter),
+            key='zone_select',
+            label_visibility='collapsed',
+        )
+        st.session_state.zone_filter = sel_zone
+
+        if sel_zone != '全地域':
+            zc = ZONE_COLORS[sel_zone]
+            st.markdown(
+                f'<div style="background:{zc}22;border-left:4px solid {zc};'
+                f'padding:6px 10px;border-radius:6px;font-size:0.82em;color:#333">'
+                f'<b style="color:{zc}">{sel_zone}</b> {ZONE_DESC[sel_zone]}</div>',
+                unsafe_allow_html=True,
+            )
 
         st.markdown('---')
-        st.markdown('**凡例（省エネ地域区分）**')
-        for code, city in CITIES.items():
-            color = city['color']
-            cname = city['name']
-            czone = city['climate_zone']
+
+        if sel_zone == '全地域':
+            zone_cities = CITIES
+        else:
+            zone_cities = {k: v for k, v in CITIES.items()
+                           if v['climate_zone'] == sel_zone}
+
+        avail_cities = {k: v for k, v in zone_cities.items() if has_data(k)}
+        unavail_cities = {k: v for k, v in zone_cities.items() if not has_data(k)}
+
+        if avail_cities:
+            st.markdown('**✅ データ収録済み**')
+            for code, city in avail_cities.items():
+                is_sel = (code == st.session_state.selected_city)
+                label = f"{'✔ ' if is_sel else ''}{city['name']}　{city['prefecture'][:3]}"
+                if st.button(
+                    label,
+                    key=f'btn_{code}',
+                    type='primary' if is_sel else 'secondary',
+                    use_container_width=True,
+                ):
+                    st.session_state.selected_city = code
+                    st.rerun()
+
+        if unavail_cities:
+            with st.expander(f'🔒 準備中の地点 ({len(unavail_cities)}地点)'):
+                for code, city in unavail_cities.items():
+                    zc = city['color']
+                    st.markdown(
+                        f'<span class="zone-badge" style="background:{zc}">'
+                        f'{city["climate_zone"]}</span>'
+                        f'<span style="color:#888;font-size:0.9em">{city["name"]} '
+                        f'({city["prefecture"][:3]})</span>',
+                        unsafe_allow_html=True,
+                    )
+
+        st.markdown('---')
+        st.markdown('**地域区分 凡例**')
+        for zone, color in ZONE_COLORS.items():
+            count_total = sum(1 for v in CITIES.values() if v['climate_zone'] == zone)
+            count_avail = sum(1 for k, v in CITIES.items()
+                              if v['climate_zone'] == zone and has_data(k))
             st.markdown(
-                f'<span class="city-badge" style="background:{color}">'
-                f'{cname}</span>{czone}',
+                f'<span class="zone-badge" style="background:{color}">{zone}</span>'
+                f'<span style="font-size:0.8em;color:#555">{count_avail}/{count_total}地点</span>',
                 unsafe_allow_html=True,
             )
 
     with col_map:
         m = create_satellite_map(st.session_state.selected_city)
-        map_result = st_folium(m, width='100%', height=440, returned_objects=['last_object_clicked'])
+        map_result = st_folium(m, width='100%', height=480,
+                               returned_objects=['last_object_clicked'])
 
         if (
             map_result
@@ -865,26 +1262,49 @@ def main():
                     st.session_state.selected_city = nearest
                     st.rerun()
 
-    city = CITIES[st.session_state.selected_city]
+    city_code = st.session_state.selected_city
+    city = CITIES[city_code]
+    zc = city['color']
+    avail = has_data(city_code)
+
     st.markdown(
         f"""
         <div style="
-            background: linear-gradient(90deg, {city['color']}22, transparent);
-            border-left: 5px solid {city['color']};
+            background: linear-gradient(90deg, {zc}22, transparent);
+            border-left: 5px solid {zc};
             border-radius: 8px; padding: 12px 20px; margin: 12px 0;
         ">
-        <span class="city-badge" style="background:{city['color']}">{city['name']}</span>
+        <span class="city-badge" style="background:{zc}">{city['name']}</span>
+        <span class="zone-badge" style="background:{zc}">{city['climate_zone']}</span>
         <strong>{city['prefecture']} / {city['region']}</strong>
-        &nbsp;|&nbsp; 省エネ地域区分: <strong>{city['climate_zone']}</strong>
         &nbsp;|&nbsp; 緯度: <strong>{city['lat']}°N</strong>
         &nbsp;|&nbsp; 経度: <strong>{city['lon']}°E</strong>
+        &nbsp;|&nbsp; {'✅ データ収録済み' if avail else '🔒 データ準備中'}
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    city_code = st.session_state.selected_city
-    with st.spinner('EPWデータを読み込み中...'):
+    if not avail:
+        st.info(
+            f'**{city["name"]}（{city["prefecture"]}）** のシミュレーションデータはまだ収録されていません。\n\n'
+            '左パネルの「✅ データ収録済み」から地点を選択してください。',
+        )
+        st.markdown('#### 現在データ収録済みの地点')
+        avail_list = [(k, v) for k, v in CITIES.items() if has_data(k)]
+        cols = st.columns(len(avail_list))
+        for col, (code, c) in zip(cols, avail_list):
+            with col:
+                if st.button(
+                    f"{c['name']}\n{c['climate_zone']}",
+                    key=f'quick_{code}',
+                    use_container_width=True,
+                ):
+                    st.session_state.selected_city = code
+                    st.rerun()
+        return
+
+    with st.spinner('シミュレーションデータを読み込み中...'):
         df_climate = load_climate_data(city_code)
         mwept, mweph, mwepc = load_mwep_data(city_code)
         df_energy, zone_annual = load_energy_data(city_code)
@@ -906,11 +1326,9 @@ def main():
                   f"夏{monthly_temp[monthly_temp['month'].isin([7,8])]['temp_avg'].mean():.1f}°C /"
                   f" 冬{monthly_temp[monthly_temp['month'].isin([1,2,12])]['temp_avg'].mean():.1f}°C")
     with k3:
-        st.metric('☀️ 南面 暖房効果', f'{ann_heat_S:.0f} MJ/m²',
-                  '（年間・省エネ基準）')
+        st.metric('☀️ 南面 暖房効果', f'{ann_heat_S:.0f} MJ/m²', '（年間・省エネ基準）')
     with k4:
-        st.metric('🌤️ 南面 冷房増加', f'{ann_cool_S:.0f} MJ/m²',
-                  '（年間・省エネ基準）')
+        st.metric('🌤️ 南面 冷房増加', f'{ann_cool_S:.0f} MJ/m²', '（年間・省エネ基準）')
     with k5:
         net_S = ann_heat_S - ann_cool_S
         st.metric('⚖️ 南面 正味収支', f'{net_S:.0f} MJ/m²',
@@ -931,23 +1349,18 @@ def main():
             'EnergyPlusシミュレーションで使用した気象データ（EPW）の統計。'
             '外気温、湿度、日射量、風況を月別・時刻別に可視化します。'
         )
-
         fig_temp, monthly_temp = chart_temperature(df_climate)
         st.plotly_chart(fig_temp, use_container_width=True)
-
         c1, c2 = st.columns(2)
         with c1:
             fig_solar, monthly_solar = chart_solar_wind(df_climate)
             st.plotly_chart(fig_solar, use_container_width=True)
-
         with c2:
             fig_wr = chart_wind_rose(df_climate)
             st.plotly_chart(fig_wr, use_container_width=True)
-
         st.markdown('#### 時刻別・月別 気温分布（ヒートマップ）')
         fig_hmap = chart_heatmap_temperature(df_climate)
         st.plotly_chart(fig_hmap, use_container_width=True)
-
         with st.expander('月別統計データ（数値）'):
             disp = monthly_temp.copy()
             disp.insert(0, '月', MONTHS_JP)
@@ -963,13 +1376,11 @@ def main():
         - **MWEPc**: 窓からの日射による **冷房負荷増加量** （正値ほど夏の遮蔽が重要）
         - **MWEPt**: 正味の窓面熱的影響（負 = 暖房有利、正 = 冷房不利）
         """)
-
         sub_tab1, sub_tab2, sub_tab3 = st.tabs([
             '🔴 暖房パッシブ効果 (MWEPh)',
             '🔵 冷房負荷増加 (MWEPc)',
             '⚖️ 正味熱的影響 (MWEPt)',
         ])
-
         with sub_tab1:
             st.plotly_chart(chart_mwep_heating(mweph), use_container_width=True)
             with st.expander('数値データ（MWEPh）'):
@@ -977,7 +1388,6 @@ def main():
                 df_h.index = MONTHS_JP[:len(df_h)]
                 df_h.index.name = '月'
                 st.dataframe(df_h.round(2), use_container_width=True)
-
         with sub_tab2:
             st.plotly_chart(chart_mwep_cooling(mwepc), use_container_width=True)
             with st.expander('数値データ（MWEPc）'):
@@ -985,7 +1395,6 @@ def main():
                 df_c.index = MONTHS_JP[:len(df_c)]
                 df_c.index.name = '月'
                 st.dataframe(df_c.round(2), use_container_width=True)
-
         with sub_tab3:
             st.plotly_chart(chart_mwep_net(mwept), use_container_width=True)
             with st.expander('数値データ（MWEPt）'):
@@ -997,12 +1406,10 @@ def main():
     with tab3:
         st.subheader(f'年間パッシブ収支分析 — {city["name"]}')
         st.markdown('方位別の年間パッシブ効果をレーダーチャートと収支グラフで可視化します。')
-
         c1, c2 = st.columns([1, 1])
         with c1:
             fig_radar, ann_heat, ann_cool = chart_annual_radar(mweph, mwepc)
             st.plotly_chart(fig_radar, use_container_width=True)
-
         with c2:
             st.markdown('#### 方位別 年間パッシブ効果')
             for d, dname in DIRECTIONS.items():
@@ -1024,7 +1431,6 @@ def main():
                 ⚖️ 正味: <b style="color:{net_color}">{net:+.0f} MJ/m²</b>
                 </div>
                 """, unsafe_allow_html=True)
-
         st.markdown('#### 月別パッシブ収支（全方位合計）')
         fig_bal = chart_passive_monthly_balance(mweph, mwepc)
         st.plotly_chart(fig_bal, use_container_width=True)
@@ -1035,10 +1441,8 @@ def main():
             'EnergyPlusによる**Ideal Loads**シミュレーション結果。'
             '省エネ基準（等級4相当）の住宅モデルにおける暖冷房負荷。'
         )
-
         fig_energy, monthly_energy = chart_energy_demand(df_energy, zone_annual, city['name'])
         st.plotly_chart(fig_energy, use_container_width=True)
-
         c1, c2, c3 = st.columns(3)
         with c1:
             st.metric('🔴 年間暖房需要', f'{total_heating:.0f} kWh',
@@ -1047,10 +1451,9 @@ def main():
             st.metric('🔵 年間冷房需要', f'{total_cooling:.0f} kWh',
                       f'月平均 {total_cooling/12:.0f} kWh')
         with c3:
-            ratio = total_heating / (total_heating + total_cooling) * 100 if (total_heating + total_cooling) > 0 else 0
-            st.metric('⚖️ 暖房比率', f'{ratio:.1f}%',
-                      f'冷房比率 {100-ratio:.1f}%')
-
+            ratio = (total_heating / (total_heating + total_cooling) * 100
+                     if (total_heating + total_cooling) > 0 else 0)
+            st.metric('⚖️ 暖房比率', f'{ratio:.1f}%', f'冷房比率 {100-ratio:.1f}%')
         with st.expander('月別エネルギー需要データ（数値）'):
             me = monthly_energy.copy()
             me.insert(0, '月', MONTHS_JP)
@@ -1064,10 +1467,8 @@ def main():
         st.markdown(
             'EPWデータとパッシブ効果分析に基づく、この地点に適した**設計指針**を提示します。'
         )
-
         _, monthly_temp = chart_temperature(df_climate)
         recs = make_recommendation_cards(mweph, mwepc, monthly_temp, city['name'])
-
         for rec in recs:
             st.markdown(f"""
             <div class="rec-card" style="border-left-color:{rec['color']}">
@@ -1078,11 +1479,13 @@ def main():
             st.markdown('')
 
         st.markdown('---')
-        st.markdown('#### 🗺️ 全地点比較')
-        st.caption('5地点の年間正味パッシブ収支（南面）を比較します')
+        st.markdown('#### 🗺️ データ収録済み地点 比較')
 
         compare_data = []
+        compare_colors = []
         for code, c in CITIES.items():
+            if not has_data(code):
+                continue
             try:
                 _, mh, mc = load_mwep_data(code)
                 compare_data.append({
@@ -1094,10 +1497,13 @@ def main():
                     '北面暖房効果[MJ/m²]': round(abs(mh['N'].sum()), 0),
                     '北面冷房増加[MJ/m²]': round(mc['N'].sum(), 0),
                 })
+                compare_colors.append(c['color'])
             except Exception:
                 pass
 
         if compare_data:
+            n_avail = len(compare_data)
+            st.caption(f'収録済み {n_avail}地点の年間正味パッシブ収支（南面）を比較します')
             df_compare = pd.DataFrame(compare_data).set_index('地点')
             st.dataframe(df_compare, use_container_width=True)
 
@@ -1106,14 +1512,14 @@ def main():
                 x=[d['地点'] for d in compare_data],
                 y=[d['南面暖房効果[MJ/m²]'] for d in compare_data],
                 name='南面暖房効果',
-                marker_color=[CITIES[c]['color'] for c in CITIES],
+                marker_color=compare_colors,
                 opacity=0.85,
             ))
             fig_comp.add_trace(go.Bar(
                 x=[d['地点'] for d in compare_data],
                 y=[-d['南面冷房増加[MJ/m²]'] for d in compare_data],
                 name='南面冷房増加（逆符号）',
-                marker_color=[CITIES[c]['color'] for c in CITIES],
+                marker_color=compare_colors,
                 opacity=0.4,
             ))
             fig_comp.add_trace(go.Scatter(
@@ -1126,9 +1532,9 @@ def main():
             ))
             fig_comp.add_hline(y=0, line_color='gray', line_width=1)
             fig_comp.update_layout(
-                title='5地点 南面パッシブ効果比較',
+                title=f'{n_avail}地点 南面パッシブ効果比較',
                 barmode='overlay',
-                height=380,
+                height=400,
                 xaxis_title='地点',
                 yaxis_title='MJ/m² (年間)',
                 plot_bgcolor='rgba(245,247,250,1)',
