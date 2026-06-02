@@ -1,80 +1,81 @@
 import streamlit as st
 from PIL import Image
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
 st.set_page_config(
-    page_title='Multipage App',
+    page_title='環境設計ツール',
     page_icon='🗾',
+    layout='wide',
 )
 
-st.title('🏚️環境設計ツール')
-st.sidebar.success('オプション')
-st.title('環境設計ツール')
-st.sidebar.success('Select a page above')
-location=['TOKYO','SAPPORO','OSAKA','FUKUOKA','KAGOSHIMA']
-select_location =st.selectbox('地域を選択してください:',location)
-site=str(select_location)
+st.title('🏚️ 環境設計ツール')
+st.sidebar.success('ページを選択してください')
+
+MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']
+
+location = ['TOKYO', 'SAPPORO', 'OSAKA', 'FUKUOKA', 'KAGOSHIMA']
+select_location = st.selectbox('地域を選択してください:', location)
+site = str(select_location)
+
+# ── 気象画像（既存PNGをそのまま表示）────────────────────────────
 col1, col2, col3 = st.columns(3)
-img1=Image.open(Rf"Tem/{site}_tem.png")
-
 with col1:
-   st.header("外気温")
-   st.image(img1)
-img2=Image.open(Rf"Rh/{site}_Rh.png")
-
+    st.header('外気温')
+    st.image(Image.open(Rf'Tem/{site}_tem.png'))
 with col2:
-   st.header("相対湿度")
-   st.image(img2)
-img3=Image.open(Rf"wind/{site}_windrose.png")
+    st.header('相対湿度')
+    st.image(Image.open(Rf'Rh/{site}_Rh.png'))
 with col3:
-   st.header("風配図")
-   st.image(img3)
+    st.header('風配図')
+    st.image(Image.open(Rf'wind/{site}_windrose.png'))
 
-wepc=pd.read_csv(Rf"地点データ/{site}/wep_base/MWEPc({site}・省エネ).csv")
+# ── MWEPデータ読み込み ────────────────────────────────────────────
+wepc = pd.read_csv(Rf'地点データ/{site}/wep_base/MWEPc({site}・省エネ).csv')
+weph = pd.read_csv(Rf'地点データ/{site}/wep_base/MWEPh({site}・省エネ).csv')
+wept = pd.read_csv(Rf'地点データ/{site}/wep_base/MWEPt({site}・省エネ).csv')
 
-weph=pd.read_csv(Rf"地点データ/{site}/wep_base/MWEPh({site}・省エネ).csv")
-wept=pd.read_csv(Rf"地点データ/{site}/wep_base/MWEPt({site}・省エネ).csv")
+months = MONTHS[:len(wepc)]
 
-wepc_data=wepc.T
+def make_mwep_fig(df, title, colors):
+    fig = make_subplots(
+        rows=2, cols=2,
+        subplot_titles=['南(S)', '北(N)', '東(E)', '西(W)'],
+        vertical_spacing=0.15, horizontal_spacing=0.08,
+    )
+    for direction, row, col in [('S', 1, 1), ('N', 1, 2), ('E', 2, 1), ('W', 2, 2)]:
+        fig.add_trace(
+            go.Bar(x=months, y=df[direction].values,
+                   name=direction, marker_color=colors[direction], showlegend=False),
+            row=row, col=col,
+        )
+    fig.update_layout(
+        title_text=title, height=520,
+        plot_bgcolor='rgba(220,220,220,0.3)', paper_bgcolor='white',
+        margin=dict(l=20, r=20, t=60, b=20),
+    )
+    fig.update_xaxes(showgrid=False)
+    fig.update_yaxes(showgrid=True, gridcolor='rgba(180,180,180,0.5)')
+    return fig
 
-weph_data=weph.T
+st.title(f'MWEPc（冷房増加）　省エネ基準　地点: {site}')
+st.plotly_chart(make_mwep_fig(
+    wepc, f'日射冷房増加負荷 [MJ/m²/月] — {site}',
+    {'S': '#5BC0DE', 'N': '#5BC0DE', 'E': '#5BC0DE', 'W': '#5BC0DE'},
+), use_container_width=True)
+st.dataframe(wepc.T, height=200)
 
-wept_data=wept.T
+st.title(f'MWEPh（暖房効果）　省エネ基準　地点: {site}')
+st.plotly_chart(make_mwep_fig(
+    weph, f'パッシブ暖房効果 [MJ/m²/月] — {site}',
+    {'S': '#DC3545', 'N': '#DC3545', 'E': '#DC3545', 'W': '#DC3545'},
+), use_container_width=True)
+st.dataframe(weph.T, height=200)
 
-st.title(f"wepc 省エネ基準 地点:{site}")
-fig = plt.figure(figsize=(15,7),dpi=250,facecolor='silver')
-ax1 = fig.add_subplot(2, 2, 1)
-ax2 = fig.add_subplot(2, 2, 2)
-ax3 = fig.add_subplot(2, 2, 3)
-ax4 = fig.add_subplot(2, 2, 4)
-ax1.bar(wepc.index,wepc['S'],color='lightblue')
-ax2.bar(wepc.index,wepc['N'],color='lightblue')
-ax3.bar(wepc.index,wepc['E'],color='lightblue')
-ax4.bar(wepc.index,wepc['W'],color='lightblue')
-st.pyplot(fig)
-st.dataframe(wepc_data, height=200)
-
-st.title(f"weph 省エネ基準地点:{site}")
-fig = plt.figure(figsize=(15,7),dpi=250,facecolor='silver')
-ax1 = fig.add_subplot(2, 2, 1)
-ax2 = fig.add_subplot(2, 2, 2)
-ax3 = fig.add_subplot(2, 2, 3)
-ax4 = fig.add_subplot(2, 2, 4)
-ax1.bar(weph.index,weph['S'],color='crimson')
-ax2.bar(weph.index,weph['N'],color='crimson')
-ax3.bar(weph.index,weph['E'],color='crimson')
-ax4.bar(weph.index,weph['W'],color='crimson')
-st.pyplot(fig)
-st.dataframe(weph_data, height=200)
-st.title(f"wept 省エネ基準 地点:{site}")
-fig = plt.figure(figsize=(15,7),dpi=250,facecolor='silver')
-ax1 = fig.add_subplot(2, 2, 1)
-ax2 = fig.add_subplot(2, 2, 2)
-ax3 = fig.add_subplot(2, 2, 3)
-ax4 = fig.add_subplot(2, 2, 4)
-ax1.bar(wept.index,wept['S'],color='crimson')
-ax2.bar(wept.index,wept['N'],color='blue')
-ax3.bar(wept.index,wept['E'],color='darkorange')
-ax4.bar(wept.index,wept['W'],color='green')
-st.pyplot(fig)
-st.dataframe(wept_data, height=200)
+st.title(f'MWEPt（正味）　省エネ基準　地点: {site}')
+st.plotly_chart(make_mwep_fig(
+    wept, f'正味窓面熱的影響 [MJ/m²/月] — {site}',
+    {'S': '#DC3545', 'N': '#0D6EFD', 'E': '#FD7E14', 'W': '#198754'},
+), use_container_width=True)
+st.dataframe(wept.T, height=200)
