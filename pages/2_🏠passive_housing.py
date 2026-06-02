@@ -652,6 +652,7 @@ def chart_energy_demand(df_energy, zone_annual, city_name):
         cooling=('cooling_kWh', 'sum'),
     ).reset_index()
 
+    # Pie は domain 型が必要なため specs で明示指定
     fig = make_subplots(
         rows=1, cols=2,
         subplot_titles=[
@@ -659,6 +660,7 @@ def chart_energy_demand(df_energy, zone_annual, city_name):
             '室別年間暖房エネルギー割合',
         ],
         column_widths=[0.58, 0.42],
+        specs=[[{"type": "xy"}, {"type": "domain"}]],
     )
 
     fig.add_trace(go.Bar(
