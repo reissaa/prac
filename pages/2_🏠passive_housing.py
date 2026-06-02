@@ -92,11 +92,11 @@ def load_climate_data(city_code):
 def load_mwep_data(city_code):
     """月別窓面エネルギー性能（MWEP）データを読み込む"""
     base = os.path.join(BASE_DIR, '地点データ', city_code, 'wep_base')
-    mwept = pd.read_csv(f"{base}/MWEPt({city_code}・省エネ).csv")
-    mweph = pd.read_csv(f"{base}/MWEPh({city_code}・省エネ).csv")
-    mwepc = pd.read_csv(f"{base}/MWEPc({city_code}・省エネ).csv")
+    mwept = pd.read_csv(f"{base}/MWEPt({city_code}・省エネ).csv").iloc[:12]
+    mweph = pd.read_csv(f"{base}/MWEPh({city_code}・省エネ).csv").iloc[:12]
+    mwepc = pd.read_csv(f"{base}/MWEPc({city_code}・省エネ).csv").iloc[:12]
     for df in [mwept, mweph, mwepc]:
-        df.index = range(1, len(df) + 1)
+        df.index = range(1, 13)
     return mwept, mweph, mwepc
 
 
