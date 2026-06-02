@@ -474,10 +474,14 @@ def chart_mwep_heating(mweph):
         ))
 
     fig.add_hline(y=0, line_color='black', line_width=1.5)
-    fig.add_hrect(y0=-500, y1=0, fillcolor='rgba(52,152,219,0.05)',
-                  line_width=0, annotation_text='▼ 暖房負荷削減域（パッシブ効果）',
-                  annotation_position='bottom right',
-                  annotation_font=dict(color='steelblue', size=11))
+    fig.add_hrect(y0=-500, y1=0, fillcolor='rgba(52,152,219,0.05)', line_width=0)
+    fig.add_annotation(
+        x=0.99, y=0.01, xref='paper', yref='paper',
+        text='▼ 暖房負荷削減域（パッシブ効果）',
+        showarrow=False, xanchor='right', yanchor='bottom',
+        font=dict(color='steelblue', size=11),
+        bgcolor='rgba(255,255,255,0.75)', borderpad=4,
+    )
 
     fig.update_layout(
         title='パッシブ太陽熱 暖房効果 [MJ/m²/月] — 方位別比較',
@@ -486,8 +490,16 @@ def chart_mwep_heating(mweph):
         xaxis_title='月',
         yaxis_title='MJ/m²',
         plot_bgcolor='rgba(245,247,250,1)', paper_bgcolor='rgba(0,0,0,0)',
-        legend=dict(orientation='h', y=1.02, x=0),
-        margin=dict(l=10, r=10, t=60, b=40),
+        legend=dict(
+            orientation='v',
+            x=1.01, y=1,
+            xanchor='left', yanchor='top',
+            bgcolor='rgba(255,255,255,0.85)',
+            bordercolor='rgba(180,180,180,0.6)',
+            borderwidth=1,
+            font=dict(size=13),
+        ),
+        margin=dict(l=10, r=120, t=60, b=40),
     )
     fig.update_xaxes(showgrid=False)
     fig.update_yaxes(showgrid=True, gridcolor='rgba(180,180,180,0.4)')
@@ -507,10 +519,14 @@ def chart_mwep_cooling(mwepc):
         ))
 
     fig.add_hline(y=0, line_color='black', line_width=1.5)
-    fig.add_hrect(y0=0, y1=500, fillcolor='rgba(231,76,60,0.05)',
-                  line_width=0, annotation_text='▲ 冷房負荷増加域（日射遮蔽が必要）',
-                  annotation_position='top right',
-                  annotation_font=dict(color='crimson', size=11))
+    fig.add_hrect(y0=0, y1=500, fillcolor='rgba(231,76,60,0.05)', line_width=0)
+    fig.add_annotation(
+        x=0.99, y=0.99, xref='paper', yref='paper',
+        text='▲ 冷房負荷増加域（日射遮蔽が必要）',
+        showarrow=False, xanchor='right', yanchor='top',
+        font=dict(color='crimson', size=11),
+        bgcolor='rgba(255,255,255,0.75)', borderpad=4,
+    )
 
     fig.update_layout(
         title='日射による冷房負荷増加 [MJ/m²/月] — 方位別比較',
@@ -519,8 +535,16 @@ def chart_mwep_cooling(mwepc):
         xaxis_title='月',
         yaxis_title='MJ/m²',
         plot_bgcolor='rgba(245,247,250,1)', paper_bgcolor='rgba(0,0,0,0)',
-        legend=dict(orientation='h', y=1.02, x=0),
-        margin=dict(l=10, r=10, t=60, b=40),
+        legend=dict(
+            orientation='v',
+            x=1.01, y=1,
+            xanchor='left', yanchor='top',
+            bgcolor='rgba(255,255,255,0.85)',
+            bordercolor='rgba(180,180,180,0.6)',
+            borderwidth=1,
+            font=dict(size=13),
+        ),
+        margin=dict(l=10, r=120, t=60, b=40),
     )
     fig.update_xaxes(showgrid=False)
     fig.update_yaxes(showgrid=True, gridcolor='rgba(180,180,180,0.4)')
@@ -553,8 +577,16 @@ def chart_mwep_net(mwept):
         xaxis_title='月',
         yaxis_title='MJ/m²（負値 = 暖房有利、正値 = 冷房不利）',
         plot_bgcolor='rgba(245,247,250,1)', paper_bgcolor='rgba(0,0,0,0)',
-        legend=dict(orientation='h', y=1.02, x=0),
-        margin=dict(l=10, r=10, t=60, b=40),
+        legend=dict(
+            orientation='v',
+            x=1.01, y=1,
+            xanchor='left', yanchor='top',
+            bgcolor='rgba(255,255,255,0.85)',
+            bordercolor='rgba(180,180,180,0.6)',
+            borderwidth=1,
+            font=dict(size=13),
+        ),
+        margin=dict(l=10, r=120, t=60, b=40),
     )
     fig.update_xaxes(showgrid=False)
     fig.update_yaxes(showgrid=True, gridcolor='rgba(180,180,180,0.4)')
@@ -640,7 +672,16 @@ def chart_passive_monthly_balance(mweph, mwepc):
         xaxis_title='月',
         yaxis_title='MJ/m²',
         plot_bgcolor='rgba(245,247,250,1)', paper_bgcolor='rgba(0,0,0,0)',
-        legend=dict(orientation='h', y=1.02, x=0),
+        legend=dict(
+            orientation='v',
+            x=1.01, y=1,
+            xanchor='left', yanchor='top',
+            bgcolor='rgba(255,255,255,0.85)',
+            bordercolor='rgba(180,180,180,0.6)',
+            borderwidth=1,
+            font=dict(size=13),
+        ),
+        margin=dict(l=10, r=140, t=60, b=40),
     )
     return fig
 
