@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>パッシブ住宅効果 可視化 — 5都市比較</title>
+<style>
+  :root {
+    --accent: #2c3e50;
+    --bg: #f4f6f9;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: #2c3e50; }
+  header {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white; padding: 24px 40px;
+    border-bottom: 4px solid var(--accent);
+  }
+  header h1 { font-size: 1.9em; letter-spacing: 0.02em; }
+  header p  { margin-top: 8px; opacity: 0.85; font-size: 1em; }
+  nav {
+    background: white; padding: 12px 40px;
+    border-bottom: 1px solid #dde; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  }
+  nav a {
+    color: var(--accent); text-decoration: none; font-weight: 600;
+    padding: 6px 14px; border-radius: 20px;
+    border: 1.5px solid var(--accent); font-size: 0.88em;
+    transition: all 0.2s;
+  }
+  nav a:hover { background: var(--accent); color: white; }
+  .kpi-bar {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    padding: 24px 40px; background: white;
+    border-bottom: 1px solid #eee;
+  }
+  .kpi {
+    flex: 1; min-width: 160px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px; padding: 14px 18px;
+  }
+  .kpi .label { font-size: 0.8em; color: #666; margin-bottom: 4px; }
+  .kpi .value { font-size: 1.5em; font-weight: 700; color: #2c3e50; }
+  .kpi .sub   { font-size: 0.78em; color: #888; margin-top: 2px; }
+  main { max-width: 1280px; margin: 0 auto; padding: 32px 24px; }
+  .section-title {
+    font-size: 1.3em; font-weight: 700; color: #2c3e50;
+    margin: 36px 0 16px; padding-bottom: 8px;
+    border-bottom: 3px solid var(--accent);
+  }
+  .chart-block {
+    background: var(--card); border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    padding: 24px; margin-bottom: 24px;
+  }
+  .chart-block h3 {
+    font-size: 1.02em; color: #444; margin-bottom: 14px;
+    padding-bottom: 8px; border-bottom: 1px solid #eee;
+  }
+  .chart-wrap { width: 100%; overflow-x: auto; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
+  footer {
+    background: #2c3e50; color: rgba(255,255,255,0.7);
+    text-align: center; padding: 24px; font-size: 0.85em; margin-top: 48px;
+  }
+  .badge {
+    display: inline-block; background: var(--accent); color: white;
+    border-radius: 12px; padding: 2px 10px; font-size: 0.8em; font-weight: 600;
+  }
+  .city-links { display: flex; gap: 10px; flex-wrap: wrap; padding: 20px 40px; background: #f8f9fa; }
+  .city-link {
+    display: block; text-decoration: none; padding: 10px 20px;
+    border-radius: 8px; border: 2px solid; font-weight: 600; font-size: 0.9em;
+    transition: all 0.2s;
+  }
+  .city-link:hover { opacity: 0.8; transform: translateY(-2px); }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏠 パッシブ住宅効果 可視化 — 5都市比較</h1>
+  <p>EPW気象データに基づく日本5都市のパッシブ住宅設計効果分析</p>
+</header>
+<nav>
+  <a href="index.html">🏠 ホーム</a>
+  <a href="TOKYO.html" style="border-color:#e74c3c;color:#e74c3c">東京</a>
+  <a href="SAPPORO.html" style="border-color:#3498db;color:#3498db">札幌</a>
+  <a href="OSAKA.html" style="border-color:#27ae60;color:#27ae60">大阪</a>
+  <a href="FUKUOKA.html" style="border-color:#f39c12;color:#f39c12">福岡</a>
+  <a href="KAGOSHIMA.html" style="border-color:#9b59b6;color:#9b59b6">鹿児島</a>
+</nav>
+
+<main>
+
+<div class="city-links">
+  <a class="city-link" href="TOKYO.html" style="border-color:#e74c3c;color:#e74c3c">東京<br><small style="font-weight:normal">6地域</small></a><a class="city-link" href="SAPPORO.html" style="border-color:#3498db;color:#3498db">札幌<br><small style="font-weight:normal">1地域</small></a><a class="city-link" href="OSAKA.html" style="border-color:#27ae60;color:#27ae60">大阪<br><small style="font-weight:normal">6地域</small></a><a class="city-link" href="FUKUOKA.html" style="border-color:#f39c12;color:#f39c12">福岡<br><small style="font-weight:normal">7地域</small></a><a class="city-link" href="KAGOSHIMA.html" style="border-color:#9b59b6;color:#9b59b6">鹿児島<br><small style="font-weight:normal">7地域</small></a>
+</div>
+<main>
+<h2 class="section-title">📊 5都市 総合比較チャート</h2>
+<div class="chart-block">
+  <div class="chart-wrap"><div>                        <script>window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.5.0.min.js" integrity="sha256-fHbNLP+GlIXN+efbQec78UkemUz3NJp7UmfGxC1tNxs=" crossorigin="anonymous"></script>                <div id="01c6e212-09fc-4639-aaf1-0e9d1a4f43c5" class="plotly-graph-div" style="height:680px; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("01c6e212-09fc-4639-aaf1-0e9d1a4f43c5")) {                    Plotly.newPlot(                        "01c6e212-09fc-4639-aaf1-0e9d1a4f43c5",                        [{"marker":{"color":["#e74c3c","#3498db","#27ae60","#f39c12","#9b59b6"]},"name":"暖房効果","text":["735","585","557","466","443"],"textposition":"auto","x":["東京","札幌","大阪","福岡","鹿児島"],"y":[734.7738528370384,585.449338668709,556.8978602820091,465.9492160242229,442.6952197313516],"type":"bar","xaxis":"x","yaxis":"y"},{"marker":{"color":["#e74c3c","#3498db","#27ae60","#f39c12","#9b59b6"]},"name":"冷房増加","text":["799","476","928","888","1126"],"textposition":"auto","x":["東京","札幌","大阪","福岡","鹿児島"],"y":[798.9178085067584,475.98284751035055,928.0435513132749,888.0504958047687,1125.5269026512717],"type":"bar","xaxis":"x2","yaxis":"y2"},{"marker":{"color":["#e74c3c","#27ae60","#e74c3c","#e74c3c","#e74c3c"]},"name":"正味収支","text":["-64","+109","-371","-422","-683"],"textposition":"auto","x":["東京","札幌","大阪","福岡","鹿児島"],"y":[-64.14395566972007,109.4664911583584,-371.14569103126576,-422.10127978054584,-682.8316829199201],"type":"bar","xaxis":"x3","yaxis":"y3"},{"marker":{"color":"rgba(231,76,60,0.8)"},"name":"暖房需要","x":["東京","札幌","大阪","福岡","鹿児島"],"y":[5853.205967166848,17416.24123851961,5477.570944172588,5366.73987380585,3301.940914891404],"type":"bar","xaxis":"x4","yaxis":"y4"},{"marker":{"color":"rgba(52,152,219,0.8)"},"name":"冷房需要","x":["東京","札幌","大阪","福岡","鹿児島"],"y":[6981.837993532627,1341.217203928316,8264.246566273076,7540.825370468013,10213.20326907914],"type":"bar","xaxis":"x4","yaxis":"y4"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,0.44]},"yaxis":{"anchor":"x","domain":[0.5900000000000001,1.0]},"xaxis2":{"anchor":"y2","domain":[0.56,1.0]},"yaxis2":{"anchor":"x2","domain":[0.5900000000000001,1.0]},"xaxis3":{"anchor":"y3","domain":[0.0,0.44]},"yaxis3":{"anchor":"x3","domain":[0.0,0.41000000000000003]},"xaxis4":{"anchor":"y4","domain":[0.56,1.0]},"yaxis4":{"anchor":"x4","domain":[0.0,0.41000000000000003]},"annotations":[{"font":{"size":16},"showarrow":false,"text":"南面 暖房パッシブ効果 [MJ\u002fm²\u002f年]","x":0.22,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"南面 冷房負荷増加 [MJ\u002fm²\u002f年]","x":0.78,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"南面 正味パッシブ収支 [MJ\u002fm²\u002f年]","x":0.22,"xanchor":"center","xref":"paper","y":0.41000000000000003,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"年間暖冷房エネルギー需要 [kWh]","x":0.78,"xanchor":"center","xref":"paper","y":0.41000000000000003,"yanchor":"bottom","yref":"paper"}],"shapes":[{"line":{"color":"black","width":1},"type":"line","x0":0,"x1":1,"xref":"x3 domain","y0":0,"y1":0,"yref":"y3"}],"margin":{"l":10,"r":10,"t":80,"b":20},"barmode":"group","height":680,"title":{"text":"5都市 パッシブ住宅効果 総合比較"},"plot_bgcolor":"rgba(245,247,250,1)","paper_bgcolor":"white","showlegend":false},                        {"responsive": true, "displayModeBar": true, "scrollZoom": false}                    )                };            </script>        </div></div>
+</div>
+<h2 class="section-title">📋 統計サマリーテーブル</h2>
+<div class="chart-block">
+<table style="width:100%;border-collapse:collapse;font-size:0.92em">
+  <thead style="background:#f0f2f5">
+    <tr>
+      <th style="padding:10px;text-align:left;border-bottom:2px solid #ddd">地点</th>
+      <th style="padding:10px;text-align:center;border-bottom:2px solid #ddd">地域区分</th>
+      <th style="padding:10px;text-align:right;border-bottom:2px solid #ddd">年均温</th>
+      <th style="padding:10px;text-align:right;border-bottom:2px solid #ddd">日射量<br><small>kWh/m²</small></th>
+      <th style="padding:10px;text-align:right;border-bottom:2px solid #ddd">南面暖房効果<br><small>MJ/m²</small></th>
+      <th style="padding:10px;text-align:right;border-bottom:2px solid #ddd">南面冷房増加<br><small>MJ/m²</small></th>
+      <th style="padding:10px;text-align:right;border-bottom:2px solid #ddd">南面正味収支<br><small>MJ/m²</small></th>
+      <th style="padding:10px;text-align:right;border-bottom:2px solid #ddd">年間暖房<br><small>kWh</small></th>
+      <th style="padding:10px;text-align:right;border-bottom:2px solid #ddd">年間冷房<br><small>kWh</small></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><a href="TOKYO.html" style="color:#e74c3c;font-weight:bold">東京</a></td><td>6地域</td><td>16.7°C</td><td>1737</td><td>735</td><td>799</td><td style="color:#e74c3c;font-weight:bold">-64</td><td>5853</td><td>6982</td></tr>
+<tr><td><a href="SAPPORO.html" style="color:#3498db;font-weight:bold">札幌</a></td><td>1地域</td><td>9.3°C</td><td>1689</td><td>585</td><td>476</td><td style="color:#27ae60;font-weight:bold">+109</td><td>17416</td><td>1341</td></tr>
+<tr><td><a href="OSAKA.html" style="color:#27ae60;font-weight:bold">大阪</a></td><td>6地域</td><td>17.2°C</td><td>1854</td><td>557</td><td>928</td><td style="color:#e74c3c;font-weight:bold">-371</td><td>5478</td><td>8264</td></tr>
+<tr><td><a href="FUKUOKA.html" style="color:#f39c12;font-weight:bold">福岡</a></td><td>7地域</td><td>17.3°C</td><td>1748</td><td>466</td><td>888</td><td style="color:#e74c3c;font-weight:bold">-422</td><td>5367</td><td>7541</td></tr>
+<tr><td><a href="KAGOSHIMA.html" style="color:#9b59b6;font-weight:bold">鹿児島</a></td><td>7地域</td><td>19.0°C</td><td>1920</td><td>443</td><td>1126</td><td style="color:#e74c3c;font-weight:bold">-683</td><td>3302</td><td>10213</td></tr>
+  </tbody>
+</table></div>
+<h2 class="section-title">📖 データの見方</h2>
+<div class="chart-block">
+  <h3>MWEP（月別窓面エネルギー性能）について</h3>
+  <ul style="line-height:2;margin:12px 0 0 20px">
+    <li><strong>MWEPh（暖房効果）</strong>: 窓からの日射取得による暖房負荷削減量 [MJ/m²]。負値ほど冬の暖房削減効果が大きい。</li>
+    <li><strong>MWEPc（冷房増加）</strong>: 窓からの日射による冷房負荷増加量 [MJ/m²]。正値ほど夏の日射遮蔽が重要。</li>
+    <li><strong>MWEPt（正味）</strong>: 暖房効果と冷房増加の合計。負値=年間を通して暖房有利、正値=冷房不利。</li>
+    <li><strong>南面正味収支</strong>: 正値の地域（寒冷地）は南窓拡大が有効。負値の地域（温暖地）は庇・ルーバーによる日射遮蔽が重要。</li>
+  </ul>
+</div>
+</main>
+</main>
+<footer>
+  データ出典: EnergyPlus 気象シミュレーション（省エネ基準）｜MWEP = 月別窓面エネルギー性能<br>
+  Generated by passive-housing-viz · 2026-06-02
+</footer>
+</body>
+</html>
