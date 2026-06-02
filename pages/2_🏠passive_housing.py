@@ -1152,14 +1152,7 @@ def main():
 
         if compare_data:
             df_compare = pd.DataFrame(compare_data).set_index('地点')
-            st.dataframe(
-                df_compare.style.background_gradient(
-                    cmap='RdYlGn', subset=['南面正味収支[MJ/m²]']
-                ).background_gradient(
-                    cmap='Blues_r', subset=['南面冷房増加[MJ/m²]']
-                ),
-                use_container_width=True,
-            )
+            st.dataframe(df_compare, use_container_width=True)
 
             fig_comp = go.Figure()
             fig_comp.add_trace(go.Bar(
