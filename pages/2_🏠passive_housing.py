@@ -66,7 +66,6 @@ DIR_SYMBOLS = {'S': '↓', 'E': '→', 'N': '↑', 'W': '←'}
 
 @st.cache_data
 def load_climate_data(city_code):
-    """EPW由来の時間別気象データを読み込む"""
     filepath = os.path.join(BASE_DIR, '地点データ', city_code, 'site', 'eplusout.csv')
     col_names = [
         'datetime', 'temp_db', 'temp_dp', 'temp_wb', 'humidity_ratio', 'rh',
@@ -90,7 +89,6 @@ def load_climate_data(city_code):
 
 @st.cache_data
 def load_mwep_data(city_code):
-    """月別窓面エネルギー性能（MWEP）データを読み込む"""
     base = os.path.join(BASE_DIR, '地点データ', city_code, 'wep_base')
     mwept = pd.read_csv(f"{base}/MWEPt({city_code}・省エネ).csv").iloc[:12]
     mweph = pd.read_csv(f"{base}/MWEPh({city_code}・省エネ).csv").iloc[:12]
@@ -102,7 +100,6 @@ def load_mwep_data(city_code):
 
 @st.cache_data
 def load_energy_data(city_code):
-    """理想空調負荷（Ideal Loads）データを読み込む"""
     filepath = os.path.join(
         BASE_DIR, '地点データ', city_code,
         'grade4 Zone Ideal Loads Supply Enegy', 'eplusout.csv',
@@ -122,7 +119,6 @@ def load_energy_data(city_code):
     dt_col = cols[0]
     df_raw['month'] = df_raw[dt_col].str.strip().str[0:2].astype(int)
 
-    # 室別年間合計
     zone_names_jp = {
         'LIVINGDINING': 'LDK', 'BEDROOM': '寝室', 'KIDSROOM1': '子供部屋1',
         'KIDSROOM2': '子供部屋2', 'KITCHEN': 'キッチン', 'BATHROOM': '浴室',
@@ -152,7 +148,6 @@ def load_energy_data(city_code):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 def create_satellite_map(selected_city):
-    """Esri衛星画像を用いたGoogle Earth風マップを生成"""
     m = folium.Map(
         location=[37.5, 136.5],
         zoom_start=5,
@@ -160,7 +155,6 @@ def create_satellite_map(selected_city):
         prefer_canvas=True,
     )
 
-    # 衛星画像タイル（Esri WorldImagery - APIキー不要）
     folium.TileLayer(
         tiles=(
             'https://server.arcgisonline.com/ArcGIS/rest/services/'
@@ -172,7 +166,6 @@ def create_satellite_map(selected_city):
         control=True,
     ).add_to(m)
 
-    # 地名ラベルオーバーレイ
     folium.TileLayer(
         tiles=(
             'https://server.arcgisonline.com/ArcGIS/rest/services/'
@@ -229,7 +222,6 @@ def create_satellite_map(selected_city):
             ),
         ).add_to(m)
 
-        # 都市名ラベル
         folium.Marker(
             location=[city['lat'] + 0.35, city['lon']],
             icon=folium.DivIcon(
@@ -244,7 +236,6 @@ def create_satellite_map(selected_city):
 
 
 def find_nearest_city(lat, lon):
-    """クリック位置に最も近い都市コードを返す"""
     min_dist = float('inf')
     nearest = 'TOKYO'
     for code, city in CITIES.items():
@@ -260,7 +251,6 @@ def find_nearest_city(lat, lon):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 def chart_temperature(df):
-    """月別気温プロファイル（最低・平均・最高）+ 相対湿度"""
     monthly = df.groupby('month').agg(
         temp_avg=('temp_db', 'mean'),
         temp_min=('temp_db', 'min'),
@@ -276,7 +266,6 @@ def chart_temperature(df):
         vertical_spacing=0.12,
     )
 
-    # 最高気温
     fig.add_trace(go.Scatter(
         x=MONTHS_JP, y=monthly['temp_max'],
         name='最高気温', mode='lines+markers',
@@ -284,7 +273,6 @@ def chart_temperature(df):
         marker=dict(size=7),
     ), row=1, col=1)
 
-    # 最低気温（塗りつぶし）
     fig.add_trace(go.Scatter(
         x=MONTHS_JP, y=monthly['temp_min'],
         name='最低気温', mode='lines+markers',
@@ -293,7 +281,6 @@ def chart_temperature(df):
         marker=dict(size=7),
     ), row=1, col=1)
 
-    # 平均気温
     fig.add_trace(go.Scatter(
         x=MONTHS_JP, y=monthly['temp_avg'],
         name='平均気温', mode='lines+markers',
@@ -301,13 +288,11 @@ def chart_temperature(df):
         marker=dict(size=9, symbol='diamond'),
     ), row=1, col=1)
 
-    # 快適ゾーン参考線
     for y, text, color in [(18, '暖房基準 18°C', 'limegreen'), (26, '冷房基準 26°C', 'orange')]:
         fig.add_hline(y=y, line_dash='dot', line_color=color, line_width=1.5,
                       annotation_text=text, annotation_position='right',
                       annotation_font_color=color, row=1, col=1)
 
-    # 相対湿度
     fig.add_trace(go.Bar(
         x=MONTHS_JP, y=monthly['rh_avg'],
         name='相対湿度', marker_color='rgba(52,152,219,0.7)',
@@ -330,7 +315,6 @@ def chart_temperature(df):
 
 
 def chart_solar_wind(df):
-    """日射量 + 風況"""
     monthly = df.groupby('month').agg(
         ghi_total=('ghi', 'sum'),
         diffuse_avg=('solar_diffuse', 'mean'),
@@ -345,7 +329,6 @@ def chart_solar_wind(df):
         horizontal_spacing=0.12,
     )
 
-    # 全天日射量
     fig.add_trace(go.Bar(
         x=MONTHS_JP, y=monthly['ghi_kWh'],
         name='全天日射量', marker_color='#f39c12',
@@ -353,7 +336,6 @@ def chart_solar_wind(df):
         textfont=dict(size=10),
     ), row=1, col=1)
 
-    # 散乱・直達
     fig.add_trace(go.Bar(
         x=MONTHS_JP, y=monthly['diffuse_avg'],
         name='散乱日射', marker_color='#F9E79F',
@@ -378,13 +360,8 @@ def chart_solar_wind(df):
 
 
 def chart_wind_rose(df):
-    """プロット対話式風配図"""
     df_wind = df[df['wind_speed'] > 0.3].copy()
 
-    dirs_16 = [
-        'N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
-        'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW',
-    ]
     dirs_jp = [
         '北', 'N北北東', '北東', '東北東', '東', '東南東', '南東', '南南東',
         '南', '南南西', '南西', '西南西', '西', '西北西', '北西', '北北西',
@@ -433,7 +410,6 @@ def chart_wind_rose(df):
 
 
 def chart_heatmap_temperature(df):
-    """時刻 × 月の気温ヒートマップ"""
     pivot = df.pivot_table(values='temp_db', index='hour', columns='month', aggfunc='mean')
     pivot.columns = MONTHS_JP
 
@@ -462,7 +438,6 @@ def chart_heatmap_temperature(df):
 
 
 def chart_mwep_heating(mweph):
-    """月別・方位別 パッシブ太陽熱暖房効果（MWEPh）"""
     fig = go.Figure()
     for d, name in DIRECTIONS.items():
         fig.add_trace(go.Bar(
@@ -474,10 +449,14 @@ def chart_mwep_heating(mweph):
         ))
 
     fig.add_hline(y=0, line_color='black', line_width=1.5)
-    fig.add_hrect(y0=-500, y1=0, fillcolor='rgba(52,152,219,0.05)',
-                  line_width=0, annotation_text='▼ 暖房負荷削減域（パッシブ効果）',
-                  annotation_position='bottom right',
-                  annotation_font=dict(color='steelblue', size=11))
+    fig.add_hrect(y0=-500, y1=0, fillcolor='rgba(52,152,219,0.05)', line_width=0)
+    fig.add_annotation(
+        x=0.99, y=0.01, xref='paper', yref='paper',
+        text='▼ 暖房負荷削減域（パッシブ効果）',
+        showarrow=False, xanchor='right', yanchor='bottom',
+        font=dict(color='steelblue', size=11),
+        bgcolor='rgba(255,255,255,0.75)', borderpad=4,
+    )
 
     fig.update_layout(
         title='パッシブ太陽熱 暖房効果 [MJ/m²/月] — 方位別比較',
@@ -486,8 +465,16 @@ def chart_mwep_heating(mweph):
         xaxis_title='月',
         yaxis_title='MJ/m²',
         plot_bgcolor='rgba(245,247,250,1)', paper_bgcolor='rgba(0,0,0,0)',
-        legend=dict(orientation='h', y=1.02, x=0),
-        margin=dict(l=10, r=10, t=60, b=40),
+        legend=dict(
+            orientation='v',
+            x=1.01, y=1,
+            xanchor='left', yanchor='top',
+            bgcolor='rgba(255,255,255,0.85)',
+            bordercolor='rgba(180,180,180,0.6)',
+            borderwidth=1,
+            font=dict(size=13),
+        ),
+        margin=dict(l=10, r=120, t=60, b=40),
     )
     fig.update_xaxes(showgrid=False)
     fig.update_yaxes(showgrid=True, gridcolor='rgba(180,180,180,0.4)')
@@ -495,7 +482,6 @@ def chart_mwep_heating(mweph):
 
 
 def chart_mwep_cooling(mwepc):
-    """月別・方位別 日射による冷房負荷増加（MWEPc）"""
     fig = go.Figure()
     for d, name in DIRECTIONS.items():
         fig.add_trace(go.Bar(
@@ -507,10 +493,14 @@ def chart_mwep_cooling(mwepc):
         ))
 
     fig.add_hline(y=0, line_color='black', line_width=1.5)
-    fig.add_hrect(y0=0, y1=500, fillcolor='rgba(231,76,60,0.05)',
-                  line_width=0, annotation_text='▲ 冷房負荷増加域（日射遮蔽が必要）',
-                  annotation_position='top right',
-                  annotation_font=dict(color='crimson', size=11))
+    fig.add_hrect(y0=0, y1=500, fillcolor='rgba(231,76,60,0.05)', line_width=0)
+    fig.add_annotation(
+        x=0.99, y=0.99, xref='paper', yref='paper',
+        text='▲ 冷房負荷増加域（日射遮蔽が必要）',
+        showarrow=False, xanchor='right', yanchor='top',
+        font=dict(color='crimson', size=11),
+        bgcolor='rgba(255,255,255,0.75)', borderpad=4,
+    )
 
     fig.update_layout(
         title='日射による冷房負荷増加 [MJ/m²/月] — 方位別比較',
@@ -519,8 +509,16 @@ def chart_mwep_cooling(mwepc):
         xaxis_title='月',
         yaxis_title='MJ/m²',
         plot_bgcolor='rgba(245,247,250,1)', paper_bgcolor='rgba(0,0,0,0)',
-        legend=dict(orientation='h', y=1.02, x=0),
-        margin=dict(l=10, r=10, t=60, b=40),
+        legend=dict(
+            orientation='v',
+            x=1.01, y=1,
+            xanchor='left', yanchor='top',
+            bgcolor='rgba(255,255,255,0.85)',
+            bordercolor='rgba(180,180,180,0.6)',
+            borderwidth=1,
+            font=dict(size=13),
+        ),
+        margin=dict(l=10, r=120, t=60, b=40),
     )
     fig.update_xaxes(showgrid=False)
     fig.update_yaxes(showgrid=True, gridcolor='rgba(180,180,180,0.4)')
@@ -528,14 +526,9 @@ def chart_mwep_cooling(mwepc):
 
 
 def chart_mwep_net(mwept):
-    """月別・方位別 正味窓面熱的影響（MWEPt）"""
     fig = go.Figure()
     for d, name in DIRECTIONS.items():
         vals = mwept[d].values
-        colors_bar = [
-            DIR_COLORS[d] if v < 0 else '#ffeeba'
-            for v in vals
-        ]
         fig.add_trace(go.Bar(
             name=f'{name}面 ({d})',
             x=MONTHS_JP,
@@ -553,8 +546,16 @@ def chart_mwep_net(mwept):
         xaxis_title='月',
         yaxis_title='MJ/m²（負値 = 暖房有利、正値 = 冷房不利）',
         plot_bgcolor='rgba(245,247,250,1)', paper_bgcolor='rgba(0,0,0,0)',
-        legend=dict(orientation='h', y=1.02, x=0),
-        margin=dict(l=10, r=10, t=60, b=40),
+        legend=dict(
+            orientation='v',
+            x=1.01, y=1,
+            xanchor='left', yanchor='top',
+            bgcolor='rgba(255,255,255,0.85)',
+            bordercolor='rgba(180,180,180,0.6)',
+            borderwidth=1,
+            font=dict(size=13),
+        ),
+        margin=dict(l=10, r=120, t=60, b=40),
     )
     fig.update_xaxes(showgrid=False)
     fig.update_yaxes(showgrid=True, gridcolor='rgba(180,180,180,0.4)')
@@ -562,13 +563,11 @@ def chart_mwep_net(mwept):
 
 
 def chart_annual_radar(mweph, mwepc):
-    """年間パッシブ効果のレーダーチャート（方位別）"""
     dirs = list(DIRECTIONS.keys())
     dir_names = [f'{DIRECTIONS[d]}面 ({d})' for d in dirs]
 
     annual_heat = [abs(mweph[d].sum()) for d in dirs]
     annual_cool = [mwepc[d].sum() for d in dirs]
-    annual_net = [abs(mweph[d].sum()) - mwepc[d].sum() for d in dirs]
 
     fig = go.Figure()
 
@@ -606,7 +605,6 @@ def chart_annual_radar(mweph, mwepc):
 
 
 def chart_passive_monthly_balance(mweph, mwepc):
-    """月別パッシブ収支（全方位合計）"""
     monthly_heat = [abs(mweph['S'].iloc[i]) + abs(mweph['E'].iloc[i]) +
                     abs(mweph['N'].iloc[i]) + abs(mweph['W'].iloc[i])
                     for i in range(12)]
@@ -640,19 +638,26 @@ def chart_passive_monthly_balance(mweph, mwepc):
         xaxis_title='月',
         yaxis_title='MJ/m²',
         plot_bgcolor='rgba(245,247,250,1)', paper_bgcolor='rgba(0,0,0,0)',
-        legend=dict(orientation='h', y=1.02, x=0),
+        legend=dict(
+            orientation='v',
+            x=1.01, y=1,
+            xanchor='left', yanchor='top',
+            bgcolor='rgba(255,255,255,0.85)',
+            bordercolor='rgba(180,180,180,0.6)',
+            borderwidth=1,
+            font=dict(size=13),
+        ),
+        margin=dict(l=10, r=140, t=60, b=40),
     )
     return fig
 
 
 def chart_energy_demand(df_energy, zone_annual, city_name):
-    """月別暖冷房エネルギー需要 + 室別割合"""
     monthly = df_energy.groupby('month').agg(
         heating=('heating_kWh', 'sum'),
         cooling=('cooling_kWh', 'sum'),
     ).reset_index()
 
-    # Pie は domain 型が必要なため specs で明示指定
     fig = make_subplots(
         rows=1, cols=2,
         subplot_titles=[
@@ -673,7 +678,6 @@ def chart_energy_demand(df_energy, zone_annual, city_name):
         name='冷房', marker_color='rgba(52,152,219,0.85)',
     ), row=1, col=1)
 
-    # 室別暖房パイチャート
     zone_h = {k: v['heating'] for k, v in zone_annual.items() if v['heating'] > 0.01}
     if zone_h:
         top_zones = sorted(zone_h.items(), key=lambda x: x[1], reverse=True)[:8]
@@ -701,8 +705,7 @@ def chart_energy_demand(df_energy, zone_annual, city_name):
     return fig, monthly
 
 
-def make_recommendation_cards(mweph, mwepc, monthly_temp):
-    """設計推奨事項を生成する"""
+def make_recommendation_cards(mweph, mwepc, monthly_temp, city_name=None):
     ann_heat = {d: abs(mweph[d].sum()) for d in 'SENW'}
     ann_cool = {d: mwepc[d].sum() for d in 'SENW'}
     net = {d: ann_heat[d] - ann_cool[d] for d in 'SENW'}
@@ -711,34 +714,38 @@ def make_recommendation_cards(mweph, mwepc, monthly_temp):
     worst_dir = min(net, key=net.get)
 
     avg_temp = monthly_temp['temp_avg'].mean()
-    winter_avg = monthly_temp[monthly_temp['month'].isin([1, 2, 12])]['temp_avg'].mean()
-    summer_avg = monthly_temp[monthly_temp['month'].isin([7, 8])]['temp_avg'].mean()
+    _winter = monthly_temp[monthly_temp['month'].isin([1, 2, 12])]['temp_avg']
+    _summer = monthly_temp[monthly_temp['month'].isin([7, 8])]['temp_avg']
+    winter_avg = float(_winter.mean()) if len(_winter) > 0 else 0.0
+    summer_avg = float(_summer.mean()) if len(_summer) > 0 else 25.0
 
-    summer_cool_S = mwepc['S'].iloc[5:9].sum()  # Jun-Sep
-    winter_heat_S = abs(mweph['S'].iloc[[0, 1, 2, 10, 11]].sum())  # Jan-Mar, Nov-Dec
+    summer_cool_S = mwepc['S'].iloc[5:9].sum()
+    winter_heat_S = abs(mweph['S'].iloc[[0, 1, 2, 10, 11]].sum())
 
     recs = []
 
+    south_msg = '✅ 南面窓の拡大を推奨。冬の日射取得が期待できます。' if net['S'] > 0 else '⚠️ 冷房増加が大きいため、日射遮蔽と開口部面積のバランスが重要です。'
     recs.append({
         'icon': '🪟',
-        'title': f'南面窓の最適化',
+        'title': '南面窓の最適化',
         'content': (
             f"南面窓の年間パッシブ暖房効果は **{ann_heat['S']:.0f} MJ/m²**、"
             f"冷房増加は **{ann_cool['S']:.0f} MJ/m²**。\n\n"
-            f"{'✅ 南面窓の拡大を推奨。冬の日射取得が期待できます。' if net['S'] > 0 else '⚠️ 冷房増加が大きいため、日射遮蔽と開口部面積のバランスが重要です。'}"
+            f"{south_msg}"
         ),
         'color': '#e74c3c',
     })
 
+    season_icon = '❄️' if winter_avg < 5 else '☀️'
+    winter_msg = '⚠️ 寒冷地。断熱・日射取得が重要。' if winter_avg < 5 else '温暖。暖房は限定的。'
+    summer_msg = '⚠️ 高温。日射遮蔽が必須。' if summer_avg > 28 else '比較的過ごしやすい。'
     recs.append({
-        'icon': '❄️' if winter_avg < 5 else '☀️',
+        'icon': season_icon,
         'title': '暖房・冷房シーズン特性',
         'content': (
             f"年間平均気温: **{avg_temp:.1f}°C**\n\n"
-            f"冬季平均（12〜2月）: **{winter_avg:.1f}°C** "
-            f"→ {'⚠️ 寒冷地。断熱・日射取得が重要。' if winter_avg < 5 else '温暖。暖房は限定的。'}\n\n"
-            f"夏季平均（7〜8月）: **{summer_avg:.1f}°C** "
-            f"→ {'⚠️ 高温。日射遮蔽が必須。' if summer_avg > 28 else '比較的過ごしやすい。'}"
+            f"冬季平均（12〜2月）: **{winter_avg:.1f}°C** → {winter_msg}\n\n"
+            f"夏季平均（7〜8月）: **{summer_avg:.1f}°C** → {summer_msg}"
         ),
         'color': '#3498db',
     })
@@ -754,12 +761,13 @@ def make_recommendation_cards(mweph, mwepc, monthly_temp):
         'color': '#27ae60',
     })
 
+    shade_msg = '⚠️ 夏の南面日射遮蔽（庇・ルーバー）が非常に重要です。' if summer_cool_S > 200 else '夏の日射遮蔽は標準的な措置で対応できます。'
     recs.append({
         'icon': '🌿',
         'title': '日射遮蔽の重要方位',
         'content': (
             f"夏季（6〜9月）の南面冷房増加負荷: **{summer_cool_S:.0f} MJ/m²**\n\n"
-            f"{'⚠️ 夏の南面日射遮蔽（庇・ルーバー）が非常に重要です。' if summer_cool_S > 200 else '夏の日射遮蔽は標準的な措置で対応できます。'}\n\n"
+            f"{shade_msg}\n\n"
             f"東西面は朝夕の低角度日射に注意。垂直ルーバーや植栽が効果的です。"
         ),
         'color': '#f39c12',
@@ -773,7 +781,6 @@ def make_recommendation_cards(mweph, mwepc, monthly_temp):
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 def main():
-    # カスタムCSS
     st.markdown("""
     <style>
     .main { padding-top: 0.5rem; }
@@ -801,18 +808,15 @@ def main():
     </style>
     """, unsafe_allow_html=True)
 
-    # ヘッダー
     st.title('🏠 パッシブ住宅効果 可視化システム')
     st.markdown(
         '地点を選択すると、EPWデータに基づく**パッシブ住宅設計効果**を多角的に可視化します。'
         '　| 　データ出典：EnergyPlus気象シミュレーション（省エネ基準）'
     )
 
-    # ━━━━ セッション初期化 ━━━━
     if 'selected_city' not in st.session_state:
         st.session_state.selected_city = 'TOKYO'
 
-    # ━━━━ 地図セクション ━━━━
     st.markdown('---')
     st.subheader('📍 地点選択 — 衛星画像マップ（Google Earth風）')
     st.caption('🖱️ 地点マーカーをクリックして地点を選択してください')
@@ -823,7 +827,6 @@ def main():
         st.markdown('**地点一覧**')
         for code, city in CITIES.items():
             selected = code == st.session_state.selected_city
-            badge_style = f"background:{city['color']};"
             is_sel = '✔ ' if selected else ''
             if st.button(
                 f"{is_sel}{city['name']} ({city['climate_zone']})",
@@ -850,7 +853,6 @@ def main():
         m = create_satellite_map(st.session_state.selected_city)
         map_result = st_folium(m, width='100%', height=440, returned_objects=['last_object_clicked'])
 
-        # マーカークリック処理
         if (
             map_result
             and map_result.get('last_object_clicked')
@@ -863,7 +865,6 @@ def main():
                     st.session_state.selected_city = nearest
                     st.rerun()
 
-    # ━━━━ 地点情報バナー ━━━━
     city = CITIES[st.session_state.selected_city]
     st.markdown(
         f"""
@@ -882,14 +883,12 @@ def main():
         unsafe_allow_html=True,
     )
 
-    # ━━━━ データ読み込み ━━━━
     city_code = st.session_state.selected_city
     with st.spinner('EPWデータを読み込み中...'):
         df_climate = load_climate_data(city_code)
         mwept, mweph, mwepc = load_mwep_data(city_code)
         df_energy, zone_annual = load_energy_data(city_code)
 
-    # ━━━━ サマリーKPI ━━━━
     st.markdown('---')
     _, monthly_temp = chart_temperature(df_climate)
 
@@ -917,7 +916,6 @@ def main():
         st.metric('⚖️ 南面 正味収支', f'{net_S:.0f} MJ/m²',
                   '正値=暖房有利' if net_S > 0 else '負値=冷房不利')
 
-    # ━━━━ タブコンテンツ ━━━━
     st.markdown('---')
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         '🌡️ EPW気候データ',
@@ -927,7 +925,6 @@ def main():
         '📋 設計推奨事項',
     ])
 
-    # ─── Tab1: 気候データ ───
     with tab1:
         st.subheader(f'EPW気象データ — {city["name"]}')
         st.markdown(
@@ -958,7 +955,6 @@ def main():
             disp.columns = ['月', '平均気温[°C]', '最低気温[°C]', '最高気温[°C]', '平均相対湿度[%]']
             st.dataframe(disp.set_index('月').round(1), use_container_width=True)
 
-    # ─── Tab2: パッシブ効果（方位別） ───
     with tab2:
         st.subheader(f'パッシブ太陽熱効果 — {city["name"]}')
         st.markdown("""
@@ -998,7 +994,6 @@ def main():
                 df_t.index.name = '月'
                 st.dataframe(df_t.round(2), use_container_width=True)
 
-    # ─── Tab3: パッシブ収支分析 ───
     with tab3:
         st.subheader(f'年間パッシブ収支分析 — {city["name"]}')
         st.markdown('方位別の年間パッシブ効果をレーダーチャートと収支グラフで可視化します。')
@@ -1009,12 +1004,12 @@ def main():
             st.plotly_chart(fig_radar, use_container_width=True)
 
         with c2:
-            # 方位別KPI
             st.markdown('#### 方位別 年間パッシブ効果')
             for d, dname in DIRECTIONS.items():
                 net = ann_heat[d] - ann_cool[d]
                 bar_heat = min(ann_heat[d] / max(max(ann_heat.values()), 1) * 100, 100)
                 bar_cool = min(ann_cool[d] / max(max(ann_cool.values()), 1) * 100, 100)
+                net_color = '#27ae60' if net > 0 else '#e74c3c'
                 st.markdown(f"""
                 <div class="metric-card" style="border-left-color:{DIR_COLORS[d]}">
                 <b>{DIR_SYMBOLS[d]} {dname}面 ({d})</b><br>
@@ -1026,7 +1021,7 @@ def main():
                 <div style="background:#eee;border-radius:4px;height:8px;margin:4px 0">
                   <div style="background:#3498db;height:8px;border-radius:4px;width:{bar_cool:.0f}%"></div>
                 </div>
-                ⚖️ 正味: <b style="color:{'#27ae60' if net>0 else '#e74c3c'}">{net:+.0f} MJ/m²</b>
+                ⚖️ 正味: <b style="color:{net_color}">{net:+.0f} MJ/m²</b>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -1034,7 +1029,6 @@ def main():
         fig_bal = chart_passive_monthly_balance(mweph, mwepc)
         st.plotly_chart(fig_bal, use_container_width=True)
 
-    # ─── Tab4: エネルギー需要 ───
     with tab4:
         st.subheader(f'暖冷房エネルギー需要 — {city["name"]}')
         st.markdown(
@@ -1065,7 +1059,6 @@ def main():
             me['合計[kWh]'] = me['暖房[kWh]'] + me['冷房[kWh]']
             st.dataframe(me.set_index('月').round(1), use_container_width=True)
 
-    # ─── Tab5: 設計推奨事項 ───
     with tab5:
         st.subheader(f'パッシブ住宅 設計推奨事項 — {city["name"]}')
         st.markdown(
