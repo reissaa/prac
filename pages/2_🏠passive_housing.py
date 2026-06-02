@@ -701,7 +701,7 @@ def chart_energy_demand(df_energy, zone_annual, city_name):
     return fig, monthly
 
 
-def make_recommendation_cards(mweph, mwepc, monthly_temp):
+def make_recommendation_cards(mweph, mwepc, monthly_temp, city_name=None):
     """設計推奨事項を生成する"""
     ann_heat = {d: abs(mweph[d].sum()) for d in 'SENW'}
     ann_cool = {d: mwepc[d].sum() for d in 'SENW'}
@@ -711,8 +711,10 @@ def make_recommendation_cards(mweph, mwepc, monthly_temp):
     worst_dir = min(net, key=net.get)
 
     avg_temp = monthly_temp['temp_avg'].mean()
-    winter_avg = monthly_temp[monthly_temp['month'].isin([1, 2, 12])]['temp_avg'].mean()
-    summer_avg = monthly_temp[monthly_temp['month'].isin([7, 8])]['temp_avg'].mean()
+    _winter = monthly_temp[monthly_temp['month'].isin([1, 2, 12])]['temp_avg']
+    _summer = monthly_temp[monthly_temp['month'].isin([7, 8])]['temp_avg']
+    winter_avg = float(_winter.mean()) if len(_winter) > 0 else 0.0
+    summer_avg = float(_summer.mean()) if len(_summer) > 0 else 25.0
 
     summer_cool_S = mwepc['S'].iloc[5:9].sum()  # Jun-Sep
     winter_heat_S = abs(mweph['S'].iloc[[0, 1, 2, 10, 11]].sum())  # Jan-Mar, Nov-Dec
