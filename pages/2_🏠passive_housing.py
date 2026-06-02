@@ -92,11 +92,11 @@ def load_climate_data(city_code):
 def load_mwep_data(city_code):
     """月別窓面エネルギー性能（MWEP）データを読み込む"""
     base = os.path.join(BASE_DIR, '地点データ', city_code, 'wep_base')
-    mwept = pd.read_csv(f"{base}/MWEPt({city_code}・省エネ).csv")
-    mweph = pd.read_csv(f"{base}/MWEPh({city_code}・省エネ).csv")
-    mwepc = pd.read_csv(f"{base}/MWEPc({city_code}・省エネ).csv")
+    mwept = pd.read_csv(f"{base}/MWEPt({city_code}・省エネ).csv").iloc[:12]
+    mweph = pd.read_csv(f"{base}/MWEPh({city_code}・省エネ).csv").iloc[:12]
+    mwepc = pd.read_csv(f"{base}/MWEPc({city_code}・省エネ).csv").iloc[:12]
     for df in [mwept, mweph, mwepc]:
-        df.index = range(1, len(df) + 1)
+        df.index = range(1, 13)
     return mwept, mweph, mwepc
 
 
@@ -700,6 +700,7 @@ def chart_energy_demand(df_energy, zone_annual, city_name):
             '室別年間暖房エネルギー割合',
         ],
         column_widths=[0.58, 0.42],
+        specs=[[{"type": "xy"}, {"type": "domain"}]],
     )
 
     fig.add_trace(go.Bar(
@@ -760,26 +761,28 @@ def make_recommendation_cards(mweph, mwepc, monthly_temp, city_name=None):
 
     recs = []
 
+    south_msg = '✅ 南面窓の拡大を推奨。冬の日射取得が期待できます。' if net['S'] > 0 else '⚠️ 冷房増加が大きいため、日射遮蔽と開口部面積のバランスが重要です。'
     recs.append({
         'icon': '🪟',
-        'title': f'南面窓の最適化',
+        'title': '南面窓の最適化',
         'content': (
             f"南面窓の年間パッシブ暖房効果は **{ann_heat['S']:.0f} MJ/m²**、"
             f"冷房増加は **{ann_cool['S']:.0f} MJ/m²**。\n\n"
-            f"{'✅ 南面窓の拡大を推奨。冬の日射取得が期待できます。' if net['S'] > 0 else '⚠️ 冷房増加が大きいため、日射遮蔽と開口部面積のバランスが重要です。'}"
+            f"{south_msg}"
         ),
         'color': '#e74c3c',
     })
 
+    season_icon = '❄️' if winter_avg < 5 else '☀️'
+    winter_msg = '⚠️ 寒冷地。断熱・日射取得が重要。' if winter_avg < 5 else '温暖。暖房は限定的。'
+    summer_msg = '⚠️ 高温。日射遮蔽が必須。' if summer_avg > 28 else '比較的過ごしやすい。'
     recs.append({
-        'icon': '❄️' if winter_avg < 5 else '☀️',
+        'icon': season_icon,
         'title': '暖房・冷房シーズン特性',
         'content': (
             f"年間平均気温: **{avg_temp:.1f}°C**\n\n"
-            f"冬季平均（12〜2月）: **{winter_avg:.1f}°C** "
-            f"→ {'⚠️ 寒冷地。断熱・日射取得が重要。' if winter_avg < 5 else '温暖。暖房は限定的。'}\n\n"
-            f"夏季平均（7〜8月）: **{summer_avg:.1f}°C** "
-            f"→ {'⚠️ 高温。日射遮蔽が必須。' if summer_avg > 28 else '比較的過ごしやすい。'}"
+            f"冬季平均（12〜2月）: **{winter_avg:.1f}°C** → {winter_msg}\n\n"
+            f"夏季平均（7〜8月）: **{summer_avg:.1f}°C** → {summer_msg}"
         ),
         'color': '#3498db',
     })
@@ -795,12 +798,13 @@ def make_recommendation_cards(mweph, mwepc, monthly_temp, city_name=None):
         'color': '#27ae60',
     })
 
+    shade_msg = '⚠️ 夏の南面日射遮蔽（庇・ルーバー）が非常に重要です。' if summer_cool_S > 200 else '夏の日射遮蔽は標準的な措置で対応できます。'
     recs.append({
         'icon': '🌿',
         'title': '日射遮蔽の重要方位',
         'content': (
             f"夏季（6〜9月）の南面冷房増加負荷: **{summer_cool_S:.0f} MJ/m²**\n\n"
-            f"{'⚠️ 夏の南面日射遮蔽（庇・ルーバー）が非常に重要です。' if summer_cool_S > 200 else '夏の日射遮蔽は標準的な措置で対応できます。'}\n\n"
+            f"{shade_msg}\n\n"
             f"東西面は朝夕の低角度日射に注意。垂直ルーバーや植栽が効果的です。"
         ),
         'color': '#f39c12',
@@ -1056,6 +1060,7 @@ def main():
                 net = ann_heat[d] - ann_cool[d]
                 bar_heat = min(ann_heat[d] / max(max(ann_heat.values()), 1) * 100, 100)
                 bar_cool = min(ann_cool[d] / max(max(ann_cool.values()), 1) * 100, 100)
+                net_color = '#27ae60' if net > 0 else '#e74c3c'
                 st.markdown(f"""
                 <div class="metric-card" style="border-left-color:{DIR_COLORS[d]}">
                 <b>{DIR_SYMBOLS[d]} {dname}面 ({d})</b><br>
@@ -1067,7 +1072,7 @@ def main():
                 <div style="background:#eee;border-radius:4px;height:8px;margin:4px 0">
                   <div style="background:#3498db;height:8px;border-radius:4px;width:{bar_cool:.0f}%"></div>
                 </div>
-                ⚖️ 正味: <b style="color:{'#27ae60' if net>0 else '#e74c3c'}">{net:+.0f} MJ/m²</b>
+                ⚖️ 正味: <b style="color:{net_color}">{net:+.0f} MJ/m²</b>
                 </div>
                 """, unsafe_allow_html=True)
 
