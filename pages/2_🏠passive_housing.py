@@ -364,6 +364,34 @@ def has_data(city_code: str) -> bool:
 
 
 @st.cache_data
+def has_wep_annual_data(city_code: str) -> bool:
+    """Win_tool年間WEPデータが存在するか確認する"""
+    path = os.path.join(BASE_DIR, '地点データ', city_code, 'wep_annual',
+                        f'WEP_Result_{city_code}_S.csv')
+    return os.path.isfile(path)
+
+
+@st.cache_data
+def load_wep_annual_data(city_code: str) -> dict:
+    """Win_tool年間WEPデータを読み込む (4方位 × 24窓種)"""
+    import re
+    base = os.path.join(BASE_DIR, '地点データ', city_code, 'wep_annual')
+    result = {}
+    window_types = None
+    for d in ['S', 'E', 'N', 'W']:
+        fp = os.path.join(base, f'WEP_Result_{city_code}_{d}.csv')
+        df = pd.read_csv(fp, header=0, encoding='utf-8-sig')
+        if window_types is None:
+            window_types = list(df.columns)
+        result[d] = {
+            'WEPh': dict(zip(df.columns, df.iloc[0].values)),
+            'WEPc': dict(zip(df.columns, df.iloc[1].values)),
+        }
+    result['window_types'] = window_types or []
+    return result
+
+
+@st.cache_data
 def load_climate_data(city_code):
     """EPW由来の時間別気象データを読み込む"""
     filepath = os.path.join(BASE_DIR, '地点データ', city_code, 'site', 'eplusout.csv')
@@ -485,7 +513,9 @@ def create_satellite_map(selected_city):
 
     for code, city in CITIES.items():
         selected = code == selected_city
-        avail = has_data(code)
+        has_mwep = has_data(code)
+        has_wep = has_wep_annual_data(code)
+        avail = has_mwep or has_wep
 
         if selected:
             size = 28
@@ -494,19 +524,26 @@ def create_satellite_map(selected_city):
             shadow = '0 0 12px rgba(255,255,255,0.9)'
             opacity = '1'
             cursor = 'pointer'
-        elif avail:
+        elif has_mwep:
             size = 20
             bg = city['color']
             border = '2px solid rgba(255,255,255,0.8)'
             shadow = '0 2px 6px rgba(0,0,0,0.5)'
             opacity = '0.9'
             cursor = 'pointer'
+        elif has_wep:
+            size = 16
+            bg = city['color']
+            border = '2px dashed rgba(255,255,255,0.7)'
+            shadow = '0 1px 4px rgba(0,0,0,0.4)'
+            opacity = '0.75'
+            cursor = 'pointer'
         else:
-            size = 13
+            size = 11
             bg = '#888888'
             border = '1.5px solid rgba(200,200,200,0.6)'
             shadow = '0 1px 3px rgba(0,0,0,0.3)'
-            opacity = '0.45'
+            opacity = '0.35'
             cursor = 'default'
 
         icon_html = (
@@ -514,6 +551,13 @@ def create_satellite_map(selected_city):
             f'width:{size}px;height:{size}px;box-shadow:{shadow};'
             f'cursor:{cursor};opacity:{opacity};"></div>'
         )
+
+        if selected or has_mwep:
+            status = '✅ 月別MWEPデータ収録済み'
+        elif has_wep:
+            status = '📊 年間WEPデータあり'
+        else:
+            status = '🔒 データ準備中'
 
         tooltip_text = (
             f"📍 {city['name']} ({city['climate_zone']}) — クリックして選択"
@@ -526,13 +570,13 @@ def create_satellite_map(selected_city):
             f"{city['prefecture']} / {city['region']}<br>"
             f"省エネ地域区分: <b>{city['climate_zone']}</b><br>"
             f"緯度: {city['lat']}°N / 経度: {city['lon']}°E<br>"
-            + ('✅ データ収録済み' if avail else '🔒 データ準備中')
+            + status
         )
 
         folium.Marker(
             location=[city['lat'], city['lon']],
             tooltip=tooltip_text,
-            popup=folium.Popup(popup_html, max_width=220),
+            popup=folium.Popup(popup_html, max_width=240),
             icon=folium.DivIcon(
                 html=icon_html,
                 icon_size=(size, size),
@@ -595,6 +639,7 @@ def chart_temperature(df):
         vertical_spacing=0.12,
     )
 
+    # 最高気温
     fig.add_trace(go.Scatter(
         x=MONTHS_JP, y=monthly['temp_max'],
         name='最高気温', mode='lines+markers',
@@ -602,6 +647,7 @@ def chart_temperature(df):
         marker=dict(size=7),
     ), row=1, col=1)
 
+    # 最低気温（塗りつぶし）
     fig.add_trace(go.Scatter(
         x=MONTHS_JP, y=monthly['temp_min'],
         name='最低気温', mode='lines+markers',
@@ -610,6 +656,7 @@ def chart_temperature(df):
         marker=dict(size=7),
     ), row=1, col=1)
 
+    # 平均気温
     fig.add_trace(go.Scatter(
         x=MONTHS_JP, y=monthly['temp_avg'],
         name='平均気温', mode='lines+markers',
@@ -617,11 +664,13 @@ def chart_temperature(df):
         marker=dict(size=9, symbol='diamond'),
     ), row=1, col=1)
 
+    # 快適ゾーン参考線
     for y, text, color in [(18, '暖房基準 18°C', 'limegreen'), (26, '冷房基準 26°C', 'orange')]:
         fig.add_hline(y=y, line_dash='dot', line_color=color, line_width=1.5,
                       annotation_text=text, annotation_position='right',
                       annotation_font_color=color, row=1, col=1)
 
+    # 相対湿度
     fig.add_trace(go.Bar(
         x=MONTHS_JP, y=monthly['rh_avg'],
         name='相対湿度', marker_color='rgba(52,152,219,0.7)',
@@ -659,6 +708,7 @@ def chart_solar_wind(df):
         horizontal_spacing=0.12,
     )
 
+    # 全天日射量
     fig.add_trace(go.Bar(
         x=MONTHS_JP, y=monthly['ghi_kWh'],
         name='全天日射量', marker_color='#f39c12',
@@ -666,6 +716,7 @@ def chart_solar_wind(df):
         textfont=dict(size=10),
     ), row=1, col=1)
 
+    # 散乱・直達
     fig.add_trace(go.Bar(
         x=MONTHS_JP, y=monthly['diffuse_avg'],
         name='散乱日射', marker_color='#F9E79F',
@@ -1017,6 +1068,7 @@ def chart_energy_demand(df_energy, zone_annual, city_name):
         name='冷房', marker_color='rgba(52,152,219,0.85)',
     ), row=1, col=1)
 
+    # 室別暖房パイチャート
     zone_h = {k: v['heating'] for k, v in zone_annual.items() if v['heating'] > 0.01}
     if zone_h:
         top_zones = sorted(zone_h.items(), key=lambda x: x[1], reverse=True)[:8]
@@ -1059,8 +1111,8 @@ def make_recommendation_cards(mweph, mwepc, monthly_temp, city_name=None):
     winter_avg = float(_winter.mean()) if len(_winter) > 0 else 0.0
     summer_avg = float(_summer.mean()) if len(_summer) > 0 else 25.0
 
-    summer_cool_S = mwepc['S'].iloc[5:9].sum()
-    winter_heat_S = abs(mweph['S'].iloc[[0, 1, 2, 10, 11]].sum())
+    summer_cool_S = mwepc['S'].iloc[5:9].sum()  # Jun-Sep
+    winter_heat_S = abs(mweph['S'].iloc[[0, 1, 2, 10, 11]].sum())  # Jan-Mar, Nov-Dec
 
     recs = []
 
@@ -1121,10 +1173,172 @@ def make_recommendation_cards(mweph, mwepc, monthly_temp, city_name=None):
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# WEP年間チャート
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+def chart_wep_direction_bars(wep_data, window_type, city_name):
+    """方位別 年間WEP棒グラフ (WEPh / WEPc)"""
+    dirs = ['S', 'E', 'N', 'W']
+    dir_names = [f'{DIRECTIONS[d]}面 ({d})' for d in dirs]
+    weph_vals = [wep_data[d]['WEPh'].get(window_type, 0) for d in dirs]
+    wepc_vals = [wep_data[d]['WEPc'].get(window_type, 0) for d in dirs]
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        name='WEPh 暖房便益',
+        x=dir_names, y=weph_vals,
+        marker_color='rgba(231,76,60,0.85)',
+        text=[f'{v:.1f}' for v in weph_vals], textposition='outside',
+        hovertemplate='%{x}<br>WEPh: %{y:.2f} kWh/m²/年<extra></extra>',
+    ))
+    fig.add_trace(go.Bar(
+        name='WEPc 冷房増加',
+        x=dir_names, y=wepc_vals,
+        marker_color='rgba(52,152,219,0.85)',
+        text=[f'{v:.1f}' for v in wepc_vals], textposition='outside',
+        hovertemplate='%{x}<br>WEPc: %{y:.2f} kWh/m²/年<extra></extra>',
+    ))
+    fig.add_hline(y=0, line_color='black', line_width=1.2)
+    fig.update_layout(
+        title=f'方位別 年間WEP — {city_name}',
+        barmode='group', height=420,
+        xaxis_title='方位', yaxis_title='kWh/m²/年',
+        plot_bgcolor='rgba(245,247,250,1)', paper_bgcolor='rgba(0,0,0,0)',
+        legend=dict(orientation='h', y=-0.18),
+        margin=dict(l=10, r=10, t=60, b=80),
+    )
+    fig.update_yaxes(showgrid=True, gridcolor='rgba(180,180,180,0.4)')
+    return fig
+
+
+def chart_wep_u_scatter(wep_data, direction, city_name):
+    """窓種別 WEP散布図 (U値 vs WEPh、色 = WEPc)"""
+    import re
+    window_types = wep_data.get('window_types', list(wep_data[direction]['WEPh'].keys()))
+    u_values, weph_vals, wepc_vals = [], [], []
+
+    for wt in window_types:
+        nums = re.findall(r'\((\d+\.?\d*)\)', wt)
+        u_values.append(float(nums[-1]) if nums else 0.0)
+        weph_vals.append(wep_data[direction]['WEPh'].get(wt, 0))
+        wepc_vals.append(wep_data[direction]['WEPc'].get(wt, 0))
+
+    short_names = []
+    for wt in window_types:
+        nums = re.findall(r'\((\d+\.?\d*)\)', wt)
+        u = nums[-1] if nums else '?'
+        if 'Kr' in wt:
+            frame = 'vinyl' if 'vinyl' in wt else 'アルミ'
+            short_names.append(f'3重/Kr/{frame} U={u}')
+        elif 'Ar' in wt and '+FL3+' in wt:
+            frame = 'vinyl' if 'vinyl' in wt else 'アルミ'
+            short_names.append(f'3重/Ar/{frame} U={u}')
+        elif 'Ar' in wt:
+            short_names.append(f'Low-Eペア/Ar U={u}')
+        elif 'Low-E' in wt:
+            short_names.append(f'Low-Eペア U={u}')
+        elif '+' in wt:
+            short_names.append(f'ペアガラス U={u}')
+        else:
+            short_names.append(f'シングル U={u}')
+
+    fig = px.scatter(
+        x=u_values, y=weph_vals, color=wepc_vals,
+        hover_name=short_names,
+        custom_data=[window_types],
+        color_continuous_scale='RdYlBu_r',
+        labels={
+            'x': '熱貫流率 U [W/m²K]',
+            'y': 'WEPh 暖房便益 [kWh/m²/年]',
+            'color': 'WEPc 冷房増加',
+        },
+        title=f'窓種別WEP — {city_name} {DIRECTIONS[direction]}面',
+    )
+    fig.update_traces(
+        marker_size=13,
+        hovertemplate='%{hovertext}<br>U値: %{x:.2f}<br>WEPh: %{y:.2f}<br>WEPc: %{customdata[0]:.2f}<extra></extra>',
+        customdata=[[wepc_vals[i], window_types[i]] for i in range(len(window_types))],
+    )
+    fig.update_layout(height=460, paper_bgcolor='rgba(0,0,0,0)',
+                      plot_bgcolor='rgba(245,247,250,1)')
+    fig.update_xaxes(autorange='reversed')
+    return fig
+
+
+def chart_wep_all_cities(window_type, direction='S'):
+    """全都市WEP比較（選択窓種・選択方位）"""
+    city_data = []
+    for code, c in CITIES.items():
+        if not has_wep_annual_data(code):
+            continue
+        try:
+            wep = load_wep_annual_data(code)
+            weph = wep[direction]['WEPh'].get(window_type, 0)
+            wepc = wep[direction]['WEPc'].get(window_type, 0)
+            city_data.append({
+                'city': c['name'],
+                'zone': c['climate_zone'],
+                'color': c['color'],
+                'WEPh': weph,
+                'WEPc': wepc,
+                'net': weph - wepc,
+            })
+        except Exception:
+            pass
+
+    if not city_data:
+        return go.Figure()
+
+    city_data.sort(key=lambda x: x['WEPh'], reverse=True)
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=[d['city'] for d in city_data],
+        y=[d['WEPh'] for d in city_data],
+        name='WEPh 暖房便益',
+        marker_color=[d['color'] for d in city_data],
+        opacity=0.85,
+        hovertemplate='%{x}<br>WEPh: %{y:.1f} kWh/m²/年<extra></extra>',
+    ))
+    fig.add_trace(go.Bar(
+        x=[d['city'] for d in city_data],
+        y=[-d['WEPc'] for d in city_data],
+        name='WEPc 冷房増加（逆符号）',
+        marker_color=[d['color'] for d in city_data],
+        opacity=0.38,
+        hovertemplate='%{x}<br>WEPc: %{customdata:.1f} kWh/m²/年<extra></extra>',
+        customdata=[d['WEPc'] for d in city_data],
+    ))
+    fig.add_trace(go.Scatter(
+        x=[d['city'] for d in city_data],
+        y=[d['net'] for d in city_data],
+        name='正味収支 (WEPh−WEPc)',
+        mode='markers+lines',
+        marker=dict(size=10, color='black', symbol='diamond'),
+        line=dict(color='black', dash='dot', width=2),
+        hovertemplate='%{x}<br>正味: %{y:.1f} kWh/m²/年<extra></extra>',
+    ))
+    fig.add_hline(y=0, line_color='gray', line_width=1)
+    fig.update_layout(
+        title=f'全都市WEP比較 — {DIRECTIONS[direction]}面 / {window_type[:30]}...'
+              if len(window_type) > 30 else f'全都市WEP比較 — {DIRECTIONS[direction]}面',
+        barmode='overlay', height=520,
+        xaxis_title='地点', yaxis_title='kWh/m²/年',
+        plot_bgcolor='rgba(245,247,250,1)', paper_bgcolor='rgba(0,0,0,0)',
+        legend=dict(orientation='h', y=1.02, x=0),
+        margin=dict(l=10, r=10, t=70, b=120),
+    )
+    fig.update_xaxes(tickangle=-50, showgrid=False)
+    fig.update_yaxes(showgrid=True, gridcolor='rgba(180,180,180,0.4)')
+    return fig
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # メインアプリ
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 def main():
+    # カスタムCSS
     st.markdown("""
     <style>
     .main { padding-top: 0.5rem; }
@@ -1157,23 +1371,27 @@ def main():
     </style>
     """, unsafe_allow_html=True)
 
+    # ヘッダー
     st.title('🏠 パッシブ住宅効果 可視化システム')
     st.markdown(
         '地点を選択すると、EPWデータに基づく**パッシブ住宅設計効果**を多角的に可視化します。'
         '　| 　データ出典：EnergyPlus気象シミュレーション（省エネ基準）'
     )
 
+    # ━━━━ セッション初期化 ━━━━
     if 'selected_city' not in st.session_state:
         st.session_state.selected_city = 'TOKYO'
     if 'zone_filter' not in st.session_state:
         st.session_state.zone_filter = '全地域'
 
+    # ━━━━ 地図セクション ━━━━
     st.markdown('---')
     st.subheader('📍 地点選択 — 衛星画像マップ（Google Earth風）')
     st.caption('🖱️ マップのマーカーをクリック、または左パネルのボタンで地点を選択してください')
 
     col_sidebar, col_map = st.columns([1, 3])
 
+    # ─── 地点選択パネル ───
     with col_sidebar:
         st.markdown('#### 省エネ地域区分')
 
@@ -1198,18 +1416,22 @@ def main():
 
         st.markdown('---')
 
+        # 地点一覧（選択ゾーンでフィルタ）
         if sel_zone == '全地域':
             zone_cities = CITIES
         else:
             zone_cities = {k: v for k, v in CITIES.items()
                            if v['climate_zone'] == sel_zone}
 
-        avail_cities = {k: v for k, v in zone_cities.items() if has_data(k)}
-        unavail_cities = {k: v for k, v in zone_cities.items() if not has_data(k)}
+        mwep_cities = {k: v for k, v in zone_cities.items() if has_data(k)}
+        wep_cities = {k: v for k, v in zone_cities.items()
+                      if not has_data(k) and has_wep_annual_data(k)}
+        none_cities = {k: v for k, v in zone_cities.items()
+                       if not has_data(k) and not has_wep_annual_data(k)}
 
-        if avail_cities:
-            st.markdown('**✅ データ収録済み**')
-            for code, city in avail_cities.items():
+        if mwep_cities:
+            st.markdown('**✅ 月別MWEPデータ**')
+            for code, city in mwep_cities.items():
                 is_sel = (code == st.session_state.selected_city)
                 label = f"{'✔ ' if is_sel else ''}{city['name']}　{city['prefecture'][:3]}"
                 if st.button(
@@ -1221,9 +1443,24 @@ def main():
                     st.session_state.selected_city = code
                     st.rerun()
 
-        if unavail_cities:
-            with st.expander(f'🔒 準備中の地点 ({len(unavail_cities)}地点)'):
-                for code, city in unavail_cities.items():
+        if wep_cities:
+            st.markdown('**📊 年間WEPデータ**')
+            for code, city in wep_cities.items():
+                is_sel = (code == st.session_state.selected_city)
+                label = f"{'✔ ' if is_sel else ''}{city['name']}　{city['prefecture'][:3]}"
+                if st.button(
+                    label,
+                    key=f'btn_{code}',
+                    type='primary' if is_sel else 'secondary',
+                    use_container_width=True,
+                ):
+                    st.session_state.selected_city = code
+                    st.rerun()
+
+        if none_cities:
+            none_count = len(none_cities)
+            with st.expander(f'🔒 準備中 ({none_count}地点)'):
+                for code, city in none_cities.items():
                     zc = city['color']
                     st.markdown(
                         f'<span class="zone-badge" style="background:{zc}">'
@@ -1233,23 +1470,30 @@ def main():
                         unsafe_allow_html=True,
                     )
 
+        # ゾーン凡例
         st.markdown('---')
         st.markdown('**地域区分 凡例**')
         for zone, color in ZONE_COLORS.items():
             count_total = sum(1 for v in CITIES.values() if v['climate_zone'] == zone)
-            count_avail = sum(1 for k, v in CITIES.items()
-                              if v['climate_zone'] == zone and has_data(k))
+            count_mwep = sum(1 for k, v in CITIES.items()
+                             if v['climate_zone'] == zone and has_data(k))
+            count_wep = sum(1 for k, v in CITIES.items()
+                            if v['climate_zone'] == zone and not has_data(k)
+                            and has_wep_annual_data(k))
             st.markdown(
                 f'<span class="zone-badge" style="background:{color}">{zone}</span>'
-                f'<span style="font-size:0.8em;color:#555">{count_avail}/{count_total}地点</span>',
+                f'<span style="font-size:0.75em;color:#555">'
+                f'✅{count_mwep} 📊{count_wep} / 計{count_total}</span>',
                 unsafe_allow_html=True,
             )
 
+    # ─── 地図 ───
     with col_map:
         m = create_satellite_map(st.session_state.selected_city)
         map_result = st_folium(m, width='100%', height=480,
                                returned_objects=['last_object_clicked'])
 
+        # マーカークリック処理
         if (
             map_result
             and map_result.get('last_object_clicked')
@@ -1262,10 +1506,19 @@ def main():
                     st.session_state.selected_city = nearest
                     st.rerun()
 
+    # ━━━━ 地点情報バナー ━━━━
     city_code = st.session_state.selected_city
     city = CITIES[city_code]
     zc = city['color']
-    avail = has_data(city_code)
+    has_mwep = has_data(city_code)
+    has_wep = has_wep_annual_data(city_code)
+
+    if has_mwep:
+        data_status = '✅ 月別MWEPデータ収録済み'
+    elif has_wep:
+        data_status = '📊 年間WEPデータあり（Win_tool）'
+    else:
+        data_status = '🔒 データ準備中'
 
     st.markdown(
         f"""
@@ -1279,18 +1532,19 @@ def main():
         <strong>{city['prefecture']} / {city['region']}</strong>
         &nbsp;|&nbsp; 緯度: <strong>{city['lat']}°N</strong>
         &nbsp;|&nbsp; 経度: <strong>{city['lon']}°E</strong>
-        &nbsp;|&nbsp; {'✅ データ収録済み' if avail else '🔒 データ準備中'}
+        &nbsp;|&nbsp; {data_status}
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    if not avail:
+    # ━━━━ データ完全未収録の場合 ━━━━
+    if not has_mwep and not has_wep:
         st.info(
             f'**{city["name"]}（{city["prefecture"]}）** のシミュレーションデータはまだ収録されていません。\n\n'
-            '左パネルの「✅ データ収録済み」から地点を選択してください。',
+            '左パネルの「✅ 月別MWEPデータ」または「📊 年間WEPデータ」から地点を選択してください。',
         )
-        st.markdown('#### 現在データ収録済みの地点')
+        st.markdown('#### 月別MWEPデータ収録済みの地点')
         avail_list = [(k, v) for k, v in CITIES.items() if has_data(k)]
         cols = st.columns(len(avail_list))
         for col, (code, c) in zip(cols, avail_list):
@@ -1304,11 +1558,117 @@ def main():
                     st.rerun()
         return
 
+    # ━━━━ WEP年間データのみの場合 ━━━━
+    if has_wep and not has_mwep:
+        wep_data = load_wep_annual_data(city_code)
+        window_types = wep_data.get('window_types', [])
+
+        st.markdown('---')
+        st.caption(
+            '📊 このデータはWin_toolシミュレーションによる**年間WEP（Window Energy Performance）**です。'
+            '月別MWEPとは異なり、24種類の窓性能を方位別に比較します。'
+        )
+
+        # 窓種選択
+        default_idx = next(
+            (i for i, w in enumerate(window_types) if 'Ar16' in w and '1.5' in w), 6
+        )
+        sel_window = st.selectbox(
+            '🪟 窓種を選択（全24種）',
+            window_types,
+            index=min(default_idx, len(window_types) - 1),
+            key='wep_window_select',
+        )
+
+        # KPIカード
+        weph_s = wep_data['S']['WEPh'].get(sel_window, 0)
+        wepc_s = wep_data['S']['WEPc'].get(sel_window, 0)
+        net_s = weph_s - wepc_s
+        best_dir = max(['S', 'E', 'N', 'W'],
+                       key=lambda d: wep_data[d]['WEPh'].get(sel_window, 0)
+                       - wep_data[d]['WEPc'].get(sel_window, 0))
+
+        k1, k2, k3, k4 = st.columns(4)
+        with k1:
+            st.metric('📍 地点', city['name'], city['prefecture'])
+        with k2:
+            st.metric('☀️ 南面 暖房便益 (WEPh)', f'{weph_s:.1f} kWh/m²',
+                      '（年間・選択窓種）')
+        with k3:
+            st.metric('🌤️ 南面 冷房増加 (WEPc)', f'{wepc_s:.1f} kWh/m²',
+                      '（年間・選択窓種）')
+        with k4:
+            st.metric('⚖️ 最有利方位', f'{DIRECTIONS[best_dir]}面 ({best_dir})',
+                      f'正味 {wep_data[best_dir]["WEPh"].get(sel_window,0) - wep_data[best_dir]["WEPc"].get(sel_window,0):.1f} kWh/m²')
+
+        st.markdown('---')
+        wtab1, wtab2, wtab3 = st.tabs([
+            '📊 方位別WEP比較',
+            '🪟 窓種別比較（散布図）',
+            '🗺️ 全都市WEP比較',
+        ])
+
+        with wtab1:
+            st.subheader(f'方位別 年間WEP — {city["name"]}')
+            st.markdown(
+                '選択した窓種について、南・東・北・西の各方位における'
+                '**暖房便益（WEPh）**と**冷房増加（WEPc）**を比較します。'
+            )
+            fig = chart_wep_direction_bars(wep_data, sel_window, city['name'])
+            st.plotly_chart(fig, use_container_width=True)
+
+            with st.expander('数値データ'):
+                rows = []
+                for d in ['S', 'E', 'N', 'W']:
+                    weph = wep_data[d]['WEPh'].get(sel_window, 0)
+                    wepc = wep_data[d]['WEPc'].get(sel_window, 0)
+                    rows.append({
+                        '方位': f'{DIRECTIONS[d]}面 ({d})',
+                        'WEPh 暖房便益 [kWh/m²/年]': round(weph, 2),
+                        'WEPc 冷房増加 [kWh/m²/年]': round(wepc, 2),
+                        '正味 [kWh/m²/年]': round(weph - wepc, 2),
+                    })
+                st.dataframe(pd.DataFrame(rows).set_index('方位'), use_container_width=True)
+
+        with wtab2:
+            st.subheader(f'窓種別 WEP比較 — {city["name"]}')
+            st.markdown(
+                '24種類の窓について、**熱貫流率（U値）** vs **WEPh（暖房便益）** を散布図で表示。'
+                '色が冷房増加（WEPc）の大きさを示します。方位を選択してください。'
+            )
+            dir_sel = st.radio('方位選択', ['S', 'E', 'N', 'W'],
+                               format_func=lambda d: f'{DIRECTIONS[d]}面 ({d})',
+                               horizontal=True, key='scatter_dir')
+            fig2 = chart_wep_u_scatter(wep_data, dir_sel, city['name'])
+            st.plotly_chart(fig2, use_container_width=True)
+
+        with wtab3:
+            st.subheader('全都市WEP比較')
+            st.markdown(
+                f'**{len([k for k in CITIES if has_wep_annual_data(k)])}都市**について、'
+                '選択窓種・方位での年間WEPを比較します。'
+            )
+            col_d, col_w = st.columns([1, 2])
+            with col_d:
+                dir_all = st.radio('方位', ['S', 'E', 'N', 'W'],
+                                   format_func=lambda d: f'{DIRECTIONS[d]}面',
+                                   key='allcity_dir')
+            with col_w:
+                win_all = st.selectbox('窓種', window_types,
+                                       index=min(default_idx, len(window_types) - 1),
+                                       key='allcity_window')
+            fig3 = chart_wep_all_cities(win_all, direction=dir_all)
+            st.plotly_chart(fig3, use_container_width=True)
+
+        return
+
+    # ━━━━ データ読み込み ━━━━
     with st.spinner('シミュレーションデータを読み込み中...'):
         df_climate = load_climate_data(city_code)
         mwept, mweph, mwepc = load_mwep_data(city_code)
         df_energy, zone_annual = load_energy_data(city_code)
 
+    # ━━━━ サマリーKPI ━━━━
     st.markdown('---')
     _, monthly_temp = chart_temperature(df_climate)
 
@@ -1326,14 +1686,17 @@ def main():
                   f"夏{monthly_temp[monthly_temp['month'].isin([7,8])]['temp_avg'].mean():.1f}°C /"
                   f" 冬{monthly_temp[monthly_temp['month'].isin([1,2,12])]['temp_avg'].mean():.1f}°C")
     with k3:
-        st.metric('☀️ 南面 暖房効果', f'{ann_heat_S:.0f} MJ/m²', '（年間・省エネ基準）')
+        st.metric('☀️ 南面 暖房効果', f'{ann_heat_S:.0f} MJ/m²',
+                  '（年間・省エネ基準）')
     with k4:
-        st.metric('🌤️ 南面 冷房増加', f'{ann_cool_S:.0f} MJ/m²', '（年間・省エネ基準）')
+        st.metric('🌤️ 南面 冷房増加', f'{ann_cool_S:.0f} MJ/m²',
+                  '（年間・省エネ基準）')
     with k5:
         net_S = ann_heat_S - ann_cool_S
         st.metric('⚖️ 南面 正味収支', f'{net_S:.0f} MJ/m²',
                   '正値=暖房有利' if net_S > 0 else '負値=冷房不利')
 
+    # ━━━━ タブコンテンツ ━━━━
     st.markdown('---')
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         '🌡️ EPW気候データ',
@@ -1343,24 +1706,30 @@ def main():
         '📋 設計推奨事項',
     ])
 
+    # ─── Tab1: 気候データ ───
     with tab1:
         st.subheader(f'EPW気象データ — {city["name"]}')
         st.markdown(
             'EnergyPlusシミュレーションで使用した気象データ（EPW）の統計。'
             '外気温、湿度、日射量、風況を月別・時刻別に可視化します。'
         )
+
         fig_temp, monthly_temp = chart_temperature(df_climate)
         st.plotly_chart(fig_temp, use_container_width=True)
+
         c1, c2 = st.columns(2)
         with c1:
             fig_solar, monthly_solar = chart_solar_wind(df_climate)
             st.plotly_chart(fig_solar, use_container_width=True)
+
         with c2:
             fig_wr = chart_wind_rose(df_climate)
             st.plotly_chart(fig_wr, use_container_width=True)
+
         st.markdown('#### 時刻別・月別 気温分布（ヒートマップ）')
         fig_hmap = chart_heatmap_temperature(df_climate)
         st.plotly_chart(fig_hmap, use_container_width=True)
+
         with st.expander('月別統計データ（数値）'):
             disp = monthly_temp.copy()
             disp.insert(0, '月', MONTHS_JP)
@@ -1368,6 +1737,7 @@ def main():
             disp.columns = ['月', '平均気温[°C]', '最低気温[°C]', '最高気温[°C]', '平均相対湿度[%]']
             st.dataframe(disp.set_index('月').round(1), use_container_width=True)
 
+    # ─── Tab2: パッシブ効果（方位別） ───
     with tab2:
         st.subheader(f'パッシブ太陽熱効果 — {city["name"]}')
         st.markdown("""
@@ -1376,11 +1746,13 @@ def main():
         - **MWEPc**: 窓からの日射による **冷房負荷増加量** （正値ほど夏の遮蔽が重要）
         - **MWEPt**: 正味の窓面熱的影響（負 = 暖房有利、正 = 冷房不利）
         """)
+
         sub_tab1, sub_tab2, sub_tab3 = st.tabs([
             '🔴 暖房パッシブ効果 (MWEPh)',
             '🔵 冷房負荷増加 (MWEPc)',
             '⚖️ 正味熱的影響 (MWEPt)',
         ])
+
         with sub_tab1:
             st.plotly_chart(chart_mwep_heating(mweph), use_container_width=True)
             with st.expander('数値データ（MWEPh）'):
@@ -1388,6 +1760,7 @@ def main():
                 df_h.index = MONTHS_JP[:len(df_h)]
                 df_h.index.name = '月'
                 st.dataframe(df_h.round(2), use_container_width=True)
+
         with sub_tab2:
             st.plotly_chart(chart_mwep_cooling(mwepc), use_container_width=True)
             with st.expander('数値データ（MWEPc）'):
@@ -1395,6 +1768,7 @@ def main():
                 df_c.index = MONTHS_JP[:len(df_c)]
                 df_c.index.name = '月'
                 st.dataframe(df_c.round(2), use_container_width=True)
+
         with sub_tab3:
             st.plotly_chart(chart_mwep_net(mwept), use_container_width=True)
             with st.expander('数値データ（MWEPt）'):
@@ -1403,14 +1777,18 @@ def main():
                 df_t.index.name = '月'
                 st.dataframe(df_t.round(2), use_container_width=True)
 
+    # ─── Tab3: パッシブ収支分析 ───
     with tab3:
         st.subheader(f'年間パッシブ収支分析 — {city["name"]}')
         st.markdown('方位別の年間パッシブ効果をレーダーチャートと収支グラフで可視化します。')
+
         c1, c2 = st.columns([1, 1])
         with c1:
             fig_radar, ann_heat, ann_cool = chart_annual_radar(mweph, mwepc)
             st.plotly_chart(fig_radar, use_container_width=True)
+
         with c2:
+            # 方位別KPI
             st.markdown('#### 方位別 年間パッシブ効果')
             for d, dname in DIRECTIONS.items():
                 net = ann_heat[d] - ann_cool[d]
@@ -1431,18 +1809,22 @@ def main():
                 ⚖️ 正味: <b style="color:{net_color}">{net:+.0f} MJ/m²</b>
                 </div>
                 """, unsafe_allow_html=True)
+
         st.markdown('#### 月別パッシブ収支（全方位合計）')
         fig_bal = chart_passive_monthly_balance(mweph, mwepc)
         st.plotly_chart(fig_bal, use_container_width=True)
 
+    # ─── Tab4: エネルギー需要 ───
     with tab4:
         st.subheader(f'暖冷房エネルギー需要 — {city["name"]}')
         st.markdown(
             'EnergyPlusによる**Ideal Loads**シミュレーション結果。'
             '省エネ基準（等級4相当）の住宅モデルにおける暖冷房負荷。'
         )
+
         fig_energy, monthly_energy = chart_energy_demand(df_energy, zone_annual, city['name'])
         st.plotly_chart(fig_energy, use_container_width=True)
+
         c1, c2, c3 = st.columns(3)
         with c1:
             st.metric('🔴 年間暖房需要', f'{total_heating:.0f} kWh',
@@ -1453,7 +1835,9 @@ def main():
         with c3:
             ratio = (total_heating / (total_heating + total_cooling) * 100
                      if (total_heating + total_cooling) > 0 else 0)
-            st.metric('⚖️ 暖房比率', f'{ratio:.1f}%', f'冷房比率 {100-ratio:.1f}%')
+            st.metric('⚖️ 暖房比率', f'{ratio:.1f}%',
+                      f'冷房比率 {100-ratio:.1f}%')
+
         with st.expander('月別エネルギー需要データ（数値）'):
             me = monthly_energy.copy()
             me.insert(0, '月', MONTHS_JP)
@@ -1462,13 +1846,16 @@ def main():
             me['合計[kWh]'] = me['暖房[kWh]'] + me['冷房[kWh]']
             st.dataframe(me.set_index('月').round(1), use_container_width=True)
 
+    # ─── Tab5: 設計推奨事項 ───
     with tab5:
         st.subheader(f'パッシブ住宅 設計推奨事項 — {city["name"]}')
         st.markdown(
             'EPWデータとパッシブ効果分析に基づく、この地点に適した**設計指針**を提示します。'
         )
+
         _, monthly_temp = chart_temperature(df_climate)
         recs = make_recommendation_cards(mweph, mwepc, monthly_temp, city['name'])
+
         for rec in recs:
             st.markdown(f"""
             <div class="rec-card" style="border-left-color:{rec['color']}">
@@ -1479,69 +1866,91 @@ def main():
             st.markdown('')
 
         st.markdown('---')
-        st.markdown('#### 🗺️ データ収録済み地点 比較')
+        st.markdown('#### 🗺️ 地点比較')
+        cmp_tab1, cmp_tab2 = st.tabs(['📋 月別MWEP比較（5地点）', '🗺️ 全都市WEP比較（45地点）'])
 
-        compare_data = []
-        compare_colors = []
-        for code, c in CITIES.items():
-            if not has_data(code):
-                continue
-            try:
-                _, mh, mc = load_mwep_data(code)
-                compare_data.append({
-                    '地点': c['name'],
-                    '地域区分': c['climate_zone'],
-                    '南面暖房効果[MJ/m²]': round(abs(mh['S'].sum()), 0),
-                    '南面冷房増加[MJ/m²]': round(mc['S'].sum(), 0),
-                    '南面正味収支[MJ/m²]': round(abs(mh['S'].sum()) - mc['S'].sum(), 0),
-                    '北面暖房効果[MJ/m²]': round(abs(mh['N'].sum()), 0),
-                    '北面冷房増加[MJ/m²]': round(mc['N'].sum(), 0),
-                })
-                compare_colors.append(c['color'])
-            except Exception:
-                pass
-
-        if compare_data:
-            n_avail = len(compare_data)
-            st.caption(f'収録済み {n_avail}地点の年間正味パッシブ収支（南面）を比較します')
-            df_compare = pd.DataFrame(compare_data).set_index('地点')
-            st.dataframe(df_compare, use_container_width=True)
-
-            fig_comp = go.Figure()
-            fig_comp.add_trace(go.Bar(
-                x=[d['地点'] for d in compare_data],
-                y=[d['南面暖房効果[MJ/m²]'] for d in compare_data],
-                name='南面暖房効果',
-                marker_color=compare_colors,
-                opacity=0.85,
-            ))
-            fig_comp.add_trace(go.Bar(
-                x=[d['地点'] for d in compare_data],
-                y=[-d['南面冷房増加[MJ/m²]'] for d in compare_data],
-                name='南面冷房増加（逆符号）',
-                marker_color=compare_colors,
-                opacity=0.4,
-            ))
-            fig_comp.add_trace(go.Scatter(
-                x=[d['地点'] for d in compare_data],
-                y=[d['南面正味収支[MJ/m²]'] for d in compare_data],
-                name='正味収支',
-                mode='markers+lines',
-                marker=dict(size=14, color='black'),
-                line=dict(color='black', dash='dot', width=2),
-            ))
-            fig_comp.add_hline(y=0, line_color='gray', line_width=1)
-            fig_comp.update_layout(
-                title=f'{n_avail}地点 南面パッシブ効果比較',
-                barmode='overlay',
-                height=400,
-                xaxis_title='地点',
-                yaxis_title='MJ/m² (年間)',
-                plot_bgcolor='rgba(245,247,250,1)',
-                paper_bgcolor='rgba(0,0,0,0)',
-                legend=dict(orientation='h', y=1.02, x=0),
+        with cmp_tab2:
+            st.markdown('Win_toolデータがある全都市のWEPを比較します。')
+            wep_ref = load_wep_annual_data(city_code)
+            wep_window_types = wep_ref.get('window_types', [])
+            wep_default_idx = next(
+                (i for i, w in enumerate(wep_window_types) if 'Ar16' in w and '1.5' in w), 6
             )
-            st.plotly_chart(fig_comp, use_container_width=True)
+            col_da, col_wa = st.columns([1, 2])
+            with col_da:
+                dir_all2 = st.radio('方位', ['S', 'E', 'N', 'W'],
+                                    format_func=lambda d: f'{DIRECTIONS[d]}面',
+                                    key='mwep_allcity_dir')
+            with col_wa:
+                win_all2 = st.selectbox('窓種', wep_window_types,
+                                        index=min(wep_default_idx, len(wep_window_types) - 1),
+                                        key='mwep_allcity_window')
+            fig_all = chart_wep_all_cities(win_all2, direction=dir_all2)
+            st.plotly_chart(fig_all, use_container_width=True)
+
+        with cmp_tab1:
+            compare_data = []
+            compare_colors = []
+            for code, c in CITIES.items():
+                if not has_data(code):
+                    continue
+                try:
+                    _, mh, mc = load_mwep_data(code)
+                    compare_data.append({
+                        '地点': c['name'],
+                        '地域区分': c['climate_zone'],
+                        '南面暖房効果[MJ/m²]': round(abs(mh['S'].sum()), 0),
+                        '南面冷房増加[MJ/m²]': round(mc['S'].sum(), 0),
+                        '南面正味収支[MJ/m²]': round(abs(mh['S'].sum()) - mc['S'].sum(), 0),
+                        '北面暖房効果[MJ/m²]': round(abs(mh['N'].sum()), 0),
+                        '北面冷房増加[MJ/m²]': round(mc['N'].sum(), 0),
+                    })
+                    compare_colors.append(c['color'])
+                except Exception:
+                    pass
+
+            if compare_data:
+                n_avail = len(compare_data)
+                st.caption(f'収録済み {n_avail}地点の年間正味パッシブ収支（南面）を比較します')
+
+                df_compare = pd.DataFrame(compare_data).set_index('地点')
+                st.dataframe(df_compare, use_container_width=True)
+
+                fig_comp = go.Figure()
+                fig_comp.add_trace(go.Bar(
+                    x=[d['地点'] for d in compare_data],
+                    y=[d['南面暖房効果[MJ/m²]'] for d in compare_data],
+                    name='南面暖房効果',
+                    marker_color=compare_colors,
+                    opacity=0.85,
+                ))
+                fig_comp.add_trace(go.Bar(
+                    x=[d['地点'] for d in compare_data],
+                    y=[-d['南面冷房増加[MJ/m²]'] for d in compare_data],
+                    name='南面冷房増加（逆符号）',
+                    marker_color=compare_colors,
+                    opacity=0.4,
+                ))
+                fig_comp.add_trace(go.Scatter(
+                    x=[d['地点'] for d in compare_data],
+                    y=[d['南面正味収支[MJ/m²]'] for d in compare_data],
+                    name='正味収支',
+                    mode='markers+lines',
+                    marker=dict(size=14, color='black'),
+                    line=dict(color='black', dash='dot', width=2),
+                ))
+                fig_comp.add_hline(y=0, line_color='gray', line_width=1)
+                fig_comp.update_layout(
+                    title=f'{n_avail}地点 南面パッシブ効果比較',
+                    barmode='overlay',
+                    height=400,
+                    xaxis_title='地点',
+                    yaxis_title='MJ/m² (年間)',
+                    plot_bgcolor='rgba(245,247,250,1)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    legend=dict(orientation='h', y=1.02, x=0),
+                )
+                st.plotly_chart(fig_comp, use_container_width=True)
 
 
 main()
