@@ -61,9 +61,9 @@ def load_climate(city_code):
 
 def load_mwep(city_code):
     base = os.path.join(BASE_DIR, '地点データ', city_code, 'wep_base')
-    mweph = pd.read_csv(f'{base}/MWEPh({city_code}・省エネ).csv')
-    mwepc = pd.read_csv(f'{base}/MWEPc({city_code}・省エネ).csv')
-    mwept = pd.read_csv(f'{base}/MWEPt({city_code}・省エネ).csv')
+    mweph = pd.read_csv(f'{base}/MWEPh({city_code}・省エネ).csv').iloc[:12]
+    mwepc = pd.read_csv(f'{base}/MWEPc({city_code}・省エネ).csv').iloc[:12]
+    mwept = pd.read_csv(f'{base}/MWEPt({city_code}・省エネ).csv').iloc[:12]
     for d in [mweph, mwepc, mwept]:
         d.index = range(1, len(d) + 1)
     return mweph, mwepc, mwept

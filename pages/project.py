@@ -45,12 +45,11 @@ def make_mwep_fig(df, title, colors):
         subplot_titles=['南(S)', '北(N)', '東(E)', '西(W)'],
         vertical_spacing=0.15, horizontal_spacing=0.08,
     )
-    pairs = [('S', 1, 1), ('N', 1, 2), ('E', 2, 1), ('W', 2, 2)]
-    for direction, row, col in pairs:
-        color = colors.get(direction, '#4472C4')
+    for direction, row, col in [('S', 1, 1), ('N', 1, 2), ('E', 2, 1), ('W', 2, 2)]:
         fig.add_trace(
             go.Bar(x=months, y=df[direction].values,
-                   name=direction, marker_color=color, showlegend=False),
+                   name=direction, marker_color=colors.get(direction, '#4472C4'),
+                   showlegend=False),
             row=row, col=col,
         )
     fig.update_layout(
@@ -62,29 +61,23 @@ def make_mwep_fig(df, title, colors):
     fig.update_yaxes(showgrid=True, gridcolor='rgba(180,180,180,0.5)')
     return fig
 
-# ── wepc ─────────────────────────────────────────────────────────
 st.title(f'MWEPc（冷房増加）　省エネ基準　地点: {site}')
-fig_c = make_mwep_fig(
+st.plotly_chart(make_mwep_fig(
     wepc, f'日射冷房増加負荷 [MJ/m²/月] — {site}',
     {'S': '#5BC0DE', 'N': '#5BC0DE', 'E': '#5BC0DE', 'W': '#5BC0DE'},
-)
-st.plotly_chart(fig_c, use_container_width=True)
+), use_container_width=True)
 st.dataframe(wepc.T, height=200)
 
-# ── weph ─────────────────────────────────────────────────────────
 st.title(f'MWEPh（暖房効果）　省エネ基準　地点: {site}')
-fig_h = make_mwep_fig(
+st.plotly_chart(make_mwep_fig(
     weph, f'パッシブ暖房効果 [MJ/m²/月] — {site}',
     {'S': '#DC3545', 'N': '#DC3545', 'E': '#DC3545', 'W': '#DC3545'},
-)
-st.plotly_chart(fig_h, use_container_width=True)
+), use_container_width=True)
 st.dataframe(weph.T, height=200)
 
-# ── wept ─────────────────────────────────────────────────────────
 st.title(f'MWEPt（正味）　省エネ基準　地点: {site}')
-fig_t = make_mwep_fig(
+st.plotly_chart(make_mwep_fig(
     wept, f'正味窓面熱的影響 [MJ/m²/月] — {site}',
     {'S': '#DC3545', 'N': '#0D6EFD', 'E': '#FD7E14', 'W': '#198754'},
-)
-st.plotly_chart(fig_t, use_container_width=True)
+), use_container_width=True)
 st.dataframe(wept.T, height=200)
