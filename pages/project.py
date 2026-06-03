@@ -39,6 +39,7 @@ wept = pd.read_csv(Rf'地点データ/{site}/wep_base/MWEPt({site}・省エネ).
 months = MONTHS[:len(wepc)]
 
 def make_mwep_fig(df, title, colors):
+    """4方位のMWEPを2×2サブプロットで表示（Plotly版）"""
     fig = make_subplots(
         rows=2, cols=2,
         subplot_titles=['南(S)', '北(N)', '東(E)', '西(W)'],
@@ -47,7 +48,8 @@ def make_mwep_fig(df, title, colors):
     for direction, row, col in [('S', 1, 1), ('N', 1, 2), ('E', 2, 1), ('W', 2, 2)]:
         fig.add_trace(
             go.Bar(x=months, y=df[direction].values,
-                   name=direction, marker_color=colors[direction], showlegend=False),
+                   name=direction, marker_color=colors.get(direction, '#4472C4'),
+                   showlegend=False),
             row=row, col=col,
         )
     fig.update_layout(
