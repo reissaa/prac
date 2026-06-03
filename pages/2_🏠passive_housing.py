@@ -1184,12 +1184,13 @@ def chart_wep_direction_bars(wep_data, window_type, city_name):
     wepc_vals = [wep_data[d]['WEPc'].get(window_type, 0) for d in dirs]
 
     fig = go.Figure()
+    neg_weph = [-v for v in weph_vals]
     fig.add_trace(go.Bar(
-        name='WEPh 暖房パッシブ効果',
-        x=dir_names, y=weph_vals,
+        name='暖房パッシブ寄与量 (−WEPh)',
+        x=dir_names, y=neg_weph,
         marker_color='rgba(231,76,60,0.85)',
-        text=[f'{v:.1f}' for v in weph_vals], textposition='outside',
-        hovertemplate='%{x}<br>WEPh: %{y:.2f} kWh/m²/年<extra></extra>',
+        text=[f'{v:.1f}' for v in neg_weph], textposition='outside',
+        hovertemplate='%{x}<br>暖房パッシブ寄与量: %{y:.2f} kWh/m²/年<extra></extra>',
     ))
     fig.add_trace(go.Bar(
         name='WEPc 冷房増加',
@@ -1202,7 +1203,7 @@ def chart_wep_direction_bars(wep_data, window_type, city_name):
     fig.update_layout(
         title=f'方位別 年間WEP — {city_name}',
         barmode='group', height=420,
-        xaxis_title='方位', yaxis_title='kWh/m²/年',
+        xaxis_title='方位', yaxis_title='暖房パッシブ寄与量 [kWh/m²/年]（高いほど有利）',
         plot_bgcolor='rgba(245,247,250,1)', paper_bgcolor='rgba(0,0,0,0)',
         legend=dict(orientation='h', y=-0.18),
         margin=dict(l=10, r=10, t=60, b=80),
@@ -1220,7 +1221,7 @@ def chart_wep_u_scatter(wep_data, direction, city_name):
     for wt in window_types:
         nums = re.findall(r'\((\d+\.?\d*)\)', wt)
         u_values.append(float(nums[-1]) if nums else 0.0)
-        weph_vals.append(wep_data[direction]['WEPh'].get(wt, 0))
+        weph_vals.append(-wep_data[direction]['WEPh'].get(wt, 0))
         wepc_vals.append(wep_data[direction]['WEPc'].get(wt, 0))
 
     short_names = []
@@ -1249,7 +1250,7 @@ def chart_wep_u_scatter(wep_data, direction, city_name):
         color_continuous_scale='RdYlBu_r',
         labels={
             'x': '熱貫流率 U [W/m²K]',
-            'y': 'WEPh 暖房パッシブ効果 [kWh/m²/年]',
+            'y': '暖房パッシブ寄与量 (−WEPh) [kWh/m²/年]',
             'color': 'WEPc 冷房増加',
         },
         title=f'窓種別WEP — {city_name} {DIRECTIONS[direction]}面',
@@ -1261,7 +1262,6 @@ def chart_wep_u_scatter(wep_data, direction, city_name):
     )
     fig.update_layout(height=460, paper_bgcolor='rgba(0,0,0,0)',
                       plot_bgcolor='rgba(245,247,250,1)')
-    fig.update_xaxes(autorange='reversed')
     return fig
 
 
@@ -1289,16 +1289,16 @@ def chart_wep_all_cities(window_type, direction='S'):
     if not city_data:
         return go.Figure()
 
-    city_data.sort(key=lambda x: x['WEPh'], reverse=True)
+    city_data.sort(key=lambda x: x['WEPh'], reverse=False)
 
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=[d['city'] for d in city_data],
-        y=[d['WEPh'] for d in city_data],
-        name='WEPh 暖房パッシブ効果',
+        y=[-d['WEPh'] for d in city_data],
+        name='暖房パッシブ寄与量 (−WEPh)',
         marker_color=[d['color'] for d in city_data],
         opacity=0.85,
-        hovertemplate='%{x}<br>WEPh: %{y:.1f} kWh/m²/年<extra></extra>',
+        hovertemplate='%{x}<br>暖房パッシブ寄与量: %{y:.1f} kWh/m²/年<extra></extra>',
     ))
     fig.add_trace(go.Bar(
         x=[d['city'] for d in city_data],
@@ -1323,7 +1323,7 @@ def chart_wep_all_cities(window_type, direction='S'):
         title=f'全都市WEP比較 — {DIRECTIONS[direction]}面 / {window_type[:30]}...'
               if len(window_type) > 30 else f'全都市WEP比較 — {DIRECTIONS[direction]}面',
         barmode='overlay', height=520,
-        xaxis_title='地点', yaxis_title='kWh/m²/年',
+        xaxis_title='地点', yaxis_title='kWh/m²/年（暖房パッシブ寄与量：高いほど有利）',
         plot_bgcolor='rgba(245,247,250,1)', paper_bgcolor='rgba(0,0,0,0)',
         legend=dict(orientation='h', y=1.02, x=0),
         margin=dict(l=10, r=10, t=70, b=120),
@@ -1584,22 +1584,21 @@ def main():
         weph_s = wep_data['S']['WEPh'].get(sel_window, 0)
         wepc_s = wep_data['S']['WEPc'].get(sel_window, 0)
         net_s = weph_s - wepc_s
-        best_dir = max(['S', 'E', 'N', 'W'],
-                       key=lambda d: wep_data[d]['WEPh'].get(sel_window, 0)
-                       - wep_data[d]['WEPc'].get(sel_window, 0))
+        best_dir = min(['S', 'E', 'N', 'W'],
+                       key=lambda d: wep_data[d]['WEPh'].get(sel_window, 0))
 
         k1, k2, k3, k4 = st.columns(4)
         with k1:
             st.metric('📍 地点', city['name'], city['prefecture'])
         with k2:
-            st.metric('☀️ 南面 暖房パッシブ効果 (WEPh)', f'{weph_s:.1f} kWh/m²',
-                      '（年間・選択窓種）')
+            st.metric('☀️ 南面 暖房パッシブ寄与量', f'{-weph_s:.1f} kWh/m²',
+                      '（年間・選択窓種、高いほど有利）')
         with k3:
             st.metric('🌤️ 南面 冷房増加 (WEPc)', f'{wepc_s:.1f} kWh/m²',
                       '（年間・選択窓種）')
         with k4:
-            st.metric('⚖️ 最有利方位', f'{DIRECTIONS[best_dir]}面 ({best_dir})',
-                      f'正味 {wep_data[best_dir]["WEPh"].get(sel_window,0) - wep_data[best_dir]["WEPc"].get(sel_window,0):.1f} kWh/m²')
+            st.metric('⚖️ 暖房最有利方位', f'{DIRECTIONS[best_dir]}面 ({best_dir})',
+                      f'寄与量 {-wep_data[best_dir]["WEPh"].get(sel_window,0):.1f} kWh/m²')
 
         st.markdown('---')
         wtab1, wtab2, wtab3 = st.tabs([
@@ -1624,9 +1623,9 @@ def main():
                     wepc = wep_data[d]['WEPc'].get(sel_window, 0)
                     rows.append({
                         '方位': f'{DIRECTIONS[d]}面 ({d})',
-                        'WEPh 暖房パッシブ効果 [kWh/m²/年]': round(weph, 2),
+                        '暖房パッシブ寄与量 −WEPh [kWh/m²/年]': round(-weph, 2),
                         'WEPc 冷房増加 [kWh/m²/年]': round(wepc, 2),
-                        '正味 [kWh/m²/年]': round(weph - wepc, 2),
+                        '正味 (−WEPh−WEPc) [kWh/m²/年]': round(-weph - wepc, 2),
                     })
                 st.dataframe(pd.DataFrame(rows).set_index('方位'), use_container_width=True)
 
