@@ -1185,7 +1185,7 @@ def chart_wep_direction_bars(wep_data, window_type, city_name):
 
     fig = go.Figure()
     fig.add_trace(go.Bar(
-        name='WEPh 暖房便益',
+        name='WEPh 暖房パッシブ効果',
         x=dir_names, y=weph_vals,
         marker_color='rgba(231,76,60,0.85)',
         text=[f'{v:.1f}' for v in weph_vals], textposition='outside',
@@ -1249,7 +1249,7 @@ def chart_wep_u_scatter(wep_data, direction, city_name):
         color_continuous_scale='RdYlBu_r',
         labels={
             'x': '熱貫流率 U [W/m²K]',
-            'y': 'WEPh 暖房便益 [kWh/m²/年]',
+            'y': 'WEPh 暖房パッシブ効果 [kWh/m²/年]',
             'color': 'WEPc 冷房増加',
         },
         title=f'窓種別WEP — {city_name} {DIRECTIONS[direction]}面',
@@ -1295,7 +1295,7 @@ def chart_wep_all_cities(window_type, direction='S'):
     fig.add_trace(go.Bar(
         x=[d['city'] for d in city_data],
         y=[d['WEPh'] for d in city_data],
-        name='WEPh 暖房便益',
+        name='WEPh 暖房パッシブ効果',
         marker_color=[d['color'] for d in city_data],
         opacity=0.85,
         hovertemplate='%{x}<br>WEPh: %{y:.1f} kWh/m²/年<extra></extra>',
@@ -1592,7 +1592,7 @@ def main():
         with k1:
             st.metric('📍 地点', city['name'], city['prefecture'])
         with k2:
-            st.metric('☀️ 南面 暖房便益 (WEPh)', f'{weph_s:.1f} kWh/m²',
+            st.metric('☀️ 南面 暖房パッシブ効果 (WEPh)', f'{weph_s:.1f} kWh/m²',
                       '（年間・選択窓種）')
         with k3:
             st.metric('🌤️ 南面 冷房増加 (WEPc)', f'{wepc_s:.1f} kWh/m²',
@@ -1612,7 +1612,7 @@ def main():
             st.subheader(f'方位別 年間WEP — {city["name"]}')
             st.markdown(
                 '選択した窓種について、南・東・北・西の各方位における'
-                '**暖房便益（WEPh）**と**冷房増加（WEPc）**を比較します。'
+                '**暖房パッシブ効果（WEPh）**と**冷房増加（WEPc）**を比較します。'
             )
             fig = chart_wep_direction_bars(wep_data, sel_window, city['name'])
             st.plotly_chart(fig, use_container_width=True)
@@ -1624,7 +1624,7 @@ def main():
                     wepc = wep_data[d]['WEPc'].get(sel_window, 0)
                     rows.append({
                         '方位': f'{DIRECTIONS[d]}面 ({d})',
-                        'WEPh 暖房便益 [kWh/m²/年]': round(weph, 2),
+                        'WEPh 暖房パッシブ効果 [kWh/m²/年]': round(weph, 2),
                         'WEPc 冷房増加 [kWh/m²/年]': round(wepc, 2),
                         '正味 [kWh/m²/年]': round(weph - wepc, 2),
                     })
@@ -1633,7 +1633,7 @@ def main():
         with wtab2:
             st.subheader(f'窓種別 WEP比較 — {city["name"]}')
             st.markdown(
-                '24種類の窓について、**熱貫流率（U値）** vs **WEPh（暖房便益）** を散布図で表示。'
+                '24種類の窓について、**熱貫流率（U値）** vs **WEPh（暖房パッシブ効果）** を散布図で表示。'
                 '色が冷房増加（WEPc）の大きさを示します。方位を選択してください。'
             )
             dir_sel = st.radio('方位選択', ['S', 'E', 'N', 'W'],
